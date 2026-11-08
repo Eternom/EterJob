@@ -150,7 +150,7 @@ Pas de `/shop` : les joueurs vont voir les PNJ.
 - `jobs()`, `jobName(lecteur, métier)`, `job(uuid)` : le métier d'un joueur (bloquant) — utilisé par EterResource pour
   les bonus de métier ;
 - `stock(matière)`, `addStock(matière, n)`, `takeStock(matière, n)` : le stock commun (bloquant), pour les futurs
-  apports (travail des prisonniers...).
+  apports (événements, récompenses...).
 - `topQuests(n)`, `questRank(uuid)` : classement des quêtes validées (bloquants), pour `/classement` d'EterReward ;
 - événement `JobQuestCompleteEvent` (joueur, métier, difficulté `easy`/`normal`/`hard`, quête bonus) : lancé une fois
   par quête validée, après l'enregistrement et le paiement — l'XP du pass d'EterReward l'écoute.

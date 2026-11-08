@@ -10,7 +10,7 @@ import java.util.UUID;
 
 /**
  * Ce qu'EterMarket offre aux autres plugins : le métier d'un joueur (guilde des métiers) et le stock commun (l'entrepôt
- * que vident les boutiques et que remplissent les quêtes ; plus tard, le travail des prisonniers). Personne d'autre ne
+ * que vident les boutiques et que remplissent les quêtes). Personne d'autre ne
  * lit les tables etermarket_* : on demande ici.
  * <pre>
  *     // compileOnly("com.github.Eternom:EterMarket:&lt;tag&gt;") ; plugin.yml : softdepend: [EterMarket]
