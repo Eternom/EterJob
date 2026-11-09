@@ -1,0 +1,135 @@
+# Quêtes du métier « bucheron » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+#
+# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
+# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
+# Objectif : "TYPE:CIBLE:QUANTITÉ"
+#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
+#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
+#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
+#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
+#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
+#   TRADE    commercer avec un villageois
+# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
+# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
+#
+# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
+# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
+#          (title, text : le lore, en MiniMessage).
+
+daily:
+  - tier: easy
+    reward: 120
+    objectives: [ "BREAK:OAK_LOG:48", "ITEM:OAK_PLANKS:64" ]
+  - tier: easy
+    reward: 120
+    objectives: [ "BREAK:BIRCH_LOG:48", "ITEM:BIRCH_LOG:16" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "BREAK:SPRUCE_LOG:48", "ITEM:CHARCOAL:16" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "BREAK:OAK_LOG:32", "ITEM:STICK:64", "ITEM:CRAFTING_TABLE:4" ]
+  - tier: easy
+    reward: 140
+    objectives: [ "BREAK:OAK_LEAVES:64", "ITEM:APPLE:2", "ITEM:OAK_SAPLING:16" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:JUNGLE_LOG:64", "ITEM:JUNGLE_LOG:32", "ITEM:COCOA_BEANS:8" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:ACACIA_LOG:64", "ITEM:ACACIA_PLANKS:64", "ITEM:ACACIA_FENCE:16" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "BREAK:DARK_OAK_LOG:64", "ITEM:DARK_OAK_LOG:32", "ITEM:APPLE:4" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:SPRUCE_LOG:64", "BREAK:BIRCH_LOG:32", "ITEM:BARREL:6" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "BREAK:OAK_LOG:64", "ITEM:CHARCOAL:32", "ITEM:CHEST:8" ]
+  - tier: normal
+    reward: 210
+    objectives: [ "BREAK:MANGROVE_LOG:48", "BREAK:MANGROVE_ROOTS:16", "ITEM:MANGROVE_PROPAGULE:8" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "BREAK:CHERRY_LOG:64", "ITEM:CHERRY_LOG:48", "ITEM:CHERRY_SAPLING:8" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "BREAK:PALE_OAK_LOG:64", "ITEM:PALE_OAK_LOG:32", "ITEM:PALE_MOSS_BLOCK:16" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "BREAK:DARK_OAK_LOG:64", "BREAK:JUNGLE_LOG:64", "BREAK:ACACIA_LOG:64" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "BREAK:CRIMSON_STEM:48", "BREAK:WARPED_STEM:48", "ITEM:SHROOMLIGHT:8" ]
+  - tier: hard
+    reward: 280
+    objectives: [ "BREAK:SPRUCE_LOG:128", "ITEM:SPRUCE_LOG:64", "ITEM:CAMPFIRE:4" ]
+  - tier: hard
+    reward: 310
+    objectives: [ "BREAK:OAK_LOG:64", "BREAK:BIRCH_LOG:64", "ITEM:BOOKSHELF:6" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "BREAK:#logs:48", "CRAFT:OAK_PLANKS:64" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "SMELT:CHARCOAL:32", "CRAFT:CHEST:8" ]
+  - tier: hard
+    reward: 300
+    min-rank: artisan
+    objectives: [ "EXPLORE:CHERRY_GROVE:1", "BREAK:CHERRY_LOG:96", "ITEM:CHERRY_LEAVES:16" ]
+
+weekly:
+  - reward: 900
+    xp: 200
+    objectives: [ "BREAK:#logs:1500", "ITEM:BOOKSHELF:8" ]
+  - reward: 950
+    xp: 200
+    objectives: [ "BREAK:DARK_OAK_LOG:400", "CRAFT:DARK_OAK_PLANKS:256" ]
+  - reward: 1000
+    xp: 220
+    min-rank: artisan
+    objectives: [ "BREAK:CRIMSON_STEM:200", "BREAK:WARPED_STEM:200", "ITEM:SHROOMLIGHT:16" ]
+
+rare:
+  - tier: normal
+    reward: 300
+    objectives: [ "EXPLORE:PALE_GARDEN:1", "BREAK:PALE_OAK_LOG:64" ]
+  - tier: hard
+    reward: 450
+    objectives: [ "EXPLORE:BAMBOO_JUNGLE:1", "BREAK:BAMBOO:128", "ITEM:SCAFFOLDING:16" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "EXPLORE:MANGROVE_SWAMP:1", "BREAK:MANGROVE_LOG:64" ]
+
+story:
+  - rank: apprenti
+    title: "<primary>La première hache"
+    text: [ "<info>Maëlle, la doyenne des bûcherons, t'observe.", "<info>« Un arbre se respecte. Coupe-le, puis replante. »" ]
+    reward: 300
+    xp: 150
+    objectives: [ "BREAK:OAK_LOG:128", "ITEM:OAK_SAPLING:16" ]
+  - rank: compagnon
+    title: "<primary>Le charbon de bois"
+    text: [ "<info>L'hiver approche et les foyers de la guilde sont vides." ]
+    reward: 500
+    xp: 200
+    objectives: [ "BREAK:#logs:256", "SMELT:CHARCOAL:64" ]
+  - rank: artisan
+    title: "<primary>Les forêts lointaines"
+    text: [ "<info>Maëlle te parle d'arbres aux feuilles roses, au-delà des montagnes." ]
+    reward: 800
+    xp: 300
+    objectives: [ "EXPLORE:CHERRY_GROVE:1", "BREAK:CHERRY_LOG:128", "ITEM:CHERRY_SAPLING:8" ]
+  - rank: expert
+    title: "<primary>Les bois du Nether"
+    text: [ "<info>Même l'enfer a ses forêts.", "<info>« Prends garde aux Piglins. »" ]
+    reward: 1200
+    xp: 400
+    objectives: [ "BREAK:CRIMSON_STEM:256", "BREAK:WARPED_STEM:256" ]
+  - rank: maitre
+    title: "<primary>Le gardien des forêts"
+    text: [ "<info>Maëlle te confie sa hache.", "<info>« Les forêts du monde sont à toi, désormais. »" ]
+    reward: 2000
+    xp: 500
+    objectives: [ "BREAK:#logs:2000", "ITEM:BOOKSHELF:16" ]

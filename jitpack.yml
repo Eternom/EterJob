@@ -1,4 +1,4 @@
-# Build JitPack (https://jitpack.io/#Eternom/EterMarket)
+# Build JitPack (https://jitpack.io/#Eternom/EterJob)
 # Gradle tourne sur Java 21 ; le JDK 25 demandé par le projet (toolchain) est téléchargé
 # automatiquement grâce au plugin foojay déclaré dans settings.gradle.kts.
 # Gradle est téléchargé directement depuis gradle.org et décompressé DANS le dossier du build : dans /tmp, partagé

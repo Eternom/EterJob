@@ -1,72 +1,172 @@
 # ============================================================
-#  EterMarket
+#  EterJob
 # ============================================================
 #
-#  Les PNJ, le contenu des boutiques, le répertoire des quêtes et le stock commun
-#  sont en base (communs à tout le réseau) et se gèrent en jeu :
-#    /market create <pnj>               crée une boutique (une seule fois pour tout le réseau)
-#    /market create <pnj> job <métier>  crée le PNJ de référence d'un métier (quêtes + boutique du métier)
-#    /market create <pnj> auction       crée un PNJ hôtel des ventes
-#    /market place <pnj>                le place là où tu es (autant de fois que tu veux)
-#    /market remove                     retire le PNJ le plus proche
-#    /market edit <pnj>                 ouvre l'éditeur (aussi : Maj + clic droit sur le PNJ)
-#  Les textes sont dans lang/. Toute modification nécessite un redémarrage du serveur.
+#  La guilde des métiers : chaque joueur a UN métier à la fois, mais garde son niveau dans chaque métier pratiqué.
+#  Chaque jour, des quêtes (objets à livrer, actions à faire), une quête de la semaine, et l'histoire du métier.
+#  Les quêtes sont dans quests/<métier>.yml. Les PNJ sont ceux d'EterNpc, avec les actions d'EterJob :
+#    eterjob:guild               le chef de guilde (choisir ou changer de métier, rangs, avantages, classement)
+#    eterjob:quests <métier>     le donneur de quêtes du métier
+#    eterjob:story <métier>      le maître du métier (l'histoire)    eterjob:perks [métier]   les avantages
+#  /eterjob reload relit ce fichier et quests/ sur tout le réseau.
 
-# Guilde des métiers : chaque joueur a UN métier, et reçoit chaque jour des quêtes au PNJ de
-# son métier : objets à livrer (parfois plusieurs, en commande) et actions à faire (tuer,
-# casser, pêcher). Les objets livrés vont dans le stock commun, la récompense est le
-# principal revenu du serveur (voir « Repères économiques » d'EterEconomy).
-# Le répertoire des quêtes se gère en jeu ; /market jobs reset <métier> confirm le remet à
-# celui de départ.
 jobs:
-  # Les quêtes changent à minuit dans ce fuseau.
+  # Les quêtes changent à minuit dans ce fuseau ; la quête de la semaine, le lundi.
   time-zone: Europe/Paris
-  # Niveaux des quêtes du jour, dans l'ordre (3 au plus) : easy, normal, hard.
-  daily: [easy, normal, hard]
-  # Une quête bonus, mieux payée, une fois les quêtes du jour faites : son niveau et son bonus.
-  bonus-quest: true
-  bonus-tier: normal
-  bonus-multiplier: 1.3
-  # Changer une quête pas encore faite contre une autre du même niveau, une fois par jour :
-  # prix (0 = gratuit, -1 = désactivé).
-  reroll-cost: 150
-  # Changer de métier (le premier choix est gratuit) : prix, et délai entre deux changements.
-  change-cost: 2000
-  change-cooldown-days: 7
-  # Métiers : identifiant -> icône. Nom et description dans lang/ (job.name.<métier>,
-  # job.join.description.<métier>). Un nouveau métier commence sans quête : remplis son
-  # répertoire dans l'éditeur (Maj + clic droit sur son PNJ, bouton « Répertoire des quêtes »).
+  # Métiers : identifiant -> icône. Nom et description dans lang/ (job.name.<métier>, job.join.description.<métier>).
   list:
     mineur: IRON_PICKAXE
     bucheron: IRON_AXE
     fermier: IRON_HOE
     chasseur: IRON_SWORD
     pecheur: FISHING_ROD
+  # Niveaux des quêtes du jour, dans l'ordre (3 au plus).
+  daily: [easy, normal, hard]
+  # Chance qu'une quête du jour soit remplacée par une rare (quests/ > rare), et son bonus (récompense et XP).
+  rare-chance: 0.08
+  rare-multiplier: 1.5
+  # Une quête bonus, mieux payée, une fois les quêtes du jour faites.
+  bonus-quest: true
+  bonus-tier: normal
+  bonus-multiplier: 1.3
+  # La quête de la semaine (quests/ > weekly).
+  weekly-quest: true
+  # Changer une quête pas encore faite, une fois par jour : prix (-1 = désactivé), gratuit à partir de ce rang.
+  reroll-cost: 150
+  reroll-free-rank: artisan
+  # Changer de métier (le premier choix est gratuit) : prix et délai. Le niveau de chaque métier est gardé.
+  change-cost: 2000
+  change-cooldown-days: 7
+  # Le métier le moins pratiqué des 7 derniers jours : récompenses + 20 %.
+  weakest-job-bonus: 0.2
+  # Gains des quêtes par jour au plus (0 : pas de plafond).
+  daily-money-cap: 0
+  # Les quêtes sans objet à livrer se valident à distance (/job).
+  remote-deliver: true
 
-# Hôtel des ventes (PNJ créé avec /market create <pnj> auction) : entre joueurs, commun à tout le réseau,
-# sans lien avec le stock commun. Les invendus et les achats sans place vont dans la boîte de récupération.
-auction:
-  # Durée d'une annonce, en heures.
-  duration-hours: 48
-  # Frais de mise en vente, payés d'avance et non remboursés (0.01 = 1 %, 1 Helok au minimum).
-  listing-fee: 0.01
-  # Taxe retenue sur le prix de vente (0.05 = 5 %) : le vendeur reçoit le reste.
-  tax: 0.05
-  # Prix minimum et maximum d'une annonce (bloque les transferts déguisés à 1 Helok).
-  min-price: 1
-  max-price: 1000000
-  # Annonces en même temps par joueur ; plus avec la permission etermarket.auction.listings.<n>.
-  default-listings: 5
-  # Acheter seulement après ce temps de jeu actif (heures, /stats d'EterSuccess) : un second compte ne peut pas passer
-  # son argent au compte principal en achetant très cher un objet sans valeur. 0 : pas de limite.
-  min-buy-playtime-hours: 5
+# Niveaux de métier : XP pour passer du niveau n au suivant = base-xp + growth-xp × (n − 1).
+# Repères : une journée complète ≈ 155 XP (+ la semaine) ; Compagnon (10) en ~10 jours, Artisan (20) en ~1 mois,
+# Expert (35) en ~3 mois, Maître (50) en ~6 mois.
+levels:
+  max: 50
+  base-xp: 100
+  growth-xp: 20
+  # Chaque niveau augmente un peu la récompense des quêtes (0,5 % par niveau, 25 % au plus).
+  reward-bonus-per-level: 0.005
+  max-reward-bonus: 0.25
 
-# Menus : bouton en bas du menu. Avec une commande (sans le /), il la lance pour le joueur et relie
-# les menus entre eux (ex : "profile" pour revenir au menu du profil) ; vide, il ferme le menu.
+# XP de métier par quête (quand la quête n'en donne pas dans quests/).
+xp:
+  easy: 20
+  normal: 35
+  hard: 55
+  bonus: 45
+  weekly: 200
+  story: 150
+
+# Rangs : niveau atteint, taille des quêtes (quantités et récompense × scale), récompense du rang (une fois).
+ranks:
+  apprenti:
+    level: 1
+    scale: 1.0
+  compagnon:
+    level: 10
+    scale: 1.1
+    reward:
+      money: 1000
+  artisan:
+    level: 20
+    scale: 1.2
+    reward:
+      money: 2500
+      items: [ "EXPERIENCE_BOTTLE 16" ]
+  expert:
+    level: 35
+    scale: 1.35
+    reward:
+      money: 5000
+      items: [ "DIAMOND 4" ]
+  maitre:
+    level: 50
+    scale: 1.5
+    reward:
+      money: 10000
+      items: [ "NETHERITE_INGOT 1" ]
+
+# Série : chaque jour d'affilée avec toutes les quêtes du jour faites ajoute un bonus aux récompenses.
+streak:
+  bonus-per-day: 0.02
+  max-bonus: 0.2
+
+# Avantages dans le MONDE RESSOURCE seulement (appliqués par EterResource), par rang, cumulés (un rang garde ceux d'avant).
+#   effects          effet:amplificateur (0 = niveau I) : haste, strength, night_vision, luck, dolphins_grace, speed...
+#   ore-drop-bonus   minerais en plus (0.3 = +30 %)          vein-mining      petits filons cassés d'un coup (blocs au plus)
+#   auto-smelt       fer, or et cuivre fondus directement    tree-felling     casser une bûche abat l'arbre
+#   sapling-replant  replante une pousse après l'abattage    apple-chance     chance de pomme en plus (0.05 = 5 %)
+#   crop-multiplier  récolte multipliée                      replant          replante la culture récoltée
+#   hoe-area         la houe récolte autour (1 = 3×3)        treasure-bonus   chance de trésor en plus à la pêche
+#   lure             attente de pêche réduite (niveaux)      mob-drop-bonus   butin des créatures en plus
+#   xp-multiplier    XP des créatures multipliée             head-chance      chance de tête de la créature
+perks:
+  mineur:
+    apprenti: { effects: [ "haste:0" ] }
+    compagnon: { ore-drop-bonus: 0.15 }
+    artisan: { ore-drop-bonus: 0.3, effects: [ "haste:1", "night_vision:0" ] }
+    expert: { ore-drop-bonus: 0.4, vein-mining: 8 }
+    maitre: { ore-drop-bonus: 0.5, auto-smelt: true }
+  bucheron:
+    apprenti: { effects: [ "haste:0" ] }
+    compagnon: { tree-felling: true }
+    artisan: { sapling-replant: true, apple-chance: 0.05 }
+    expert: { effects: [ "haste:1" ], apple-chance: 0.1 }
+    maitre: { effects: [ "haste:1", "strength:0" ], apple-chance: 0.15 }
+  fermier:
+    apprenti: { effects: [ "saturation:0" ] }
+    compagnon: { crop-multiplier: 2 }
+    artisan: { replant: true }
+    expert: { crop-multiplier: 3 }
+    maitre: { hoe-area: 1 }
+  chasseur:
+    apprenti: { effects: [ "strength:0" ] }
+    compagnon: { mob-drop-bonus: 0.25 }
+    artisan: { mob-drop-bonus: 0.5, effects: [ "strength:0", "speed:0" ] }
+    expert: { xp-multiplier: 2 }
+    maitre: { head-chance: 0.05, mob-drop-bonus: 0.75 }
+  pecheur:
+    apprenti: { effects: [ "luck:0" ] }
+    compagnon: { lure: 1 }
+    artisan: { treasure-bonus: 0.1, effects: [ "luck:0", "dolphins_grace:0" ] }
+    expert: { lure: 2, treasure-bonus: 0.2 }
+    maitre: { lure: 3, treasure-bonus: 0.3, effects: [ "luck:1", "dolphins_grace:0", "water_breathing:0" ] }
+
+# Donneur de quêtes de chaque métier (PNJ d'EterNpc) : un « ! » apparaît au-dessus de lui quand une quête est prête.
+quest-givers:
+  mineur: "eternpc:mineur"
+  bucheron: "eternpc:bucheron"
+  fermier: "eternpc:fermier"
+  chasseur: "eternpc:chasseur"
+  pecheur: "eternpc:pecheur"
+
+anti-cheat:
+  # Les créatures des spawners de trial chamber comptent-elles ?
+  count-trial-spawners: false
+  # Pêcher « n'importe quoi » : seuls les poissons comptent (pas les déchets ni les trésors).
+  fish-only-fish: true
+  # Pas de progrès avant ce temps de jeu actif sur le serveur (minutes, EterSuccess ; 0 : aucun).
+  min-playtime-minutes: 30
+  # Plus de blocs cassés en une minute : le staff est prévenu (0 : jamais).
+  break-alert-per-minute: 300
+
+display:
+  # Barre de boss pendant une action (sinon : au-dessus de la barre d'objets).
+  boss-bar: true
+  # Une quête est suivie dans la sidebar dès qu'elle avance (si aucune ne l'est).
+  auto-track: true
+  # Rappel « quête prête à valider », au plus toutes les N minutes (0 : jamais).
+  ready-reminder-minutes: 60
+  # Un nouveau maître est annoncé sur tout le réseau.
+  announce-master: true
+
+# Bouton en bas des menus : commande (sans le /) pour revenir (ex : "menu") ; vide : fermer.
 menus:
-  shop:
-    back-command: ""
-  jobs:
-    back-command: ""
-  auction:
-    back-command: ""
+  back-command: ""

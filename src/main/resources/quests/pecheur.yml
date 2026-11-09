@@ -1,0 +1,135 @@
+# Quêtes du métier « pecheur » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+#
+# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
+# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
+# Objectif : "TYPE:CIBLE:QUANTITÉ"
+#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
+#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
+#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
+#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
+#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
+#   TRADE    commercer avec un villageois
+# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
+# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
+#
+# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
+# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
+#          (title, text : le lore, en MiniMessage).
+
+daily:
+  - tier: easy
+    reward: 120
+    objectives: [ "FISH:ANY:15", "ITEM:COD:12" ]
+  - tier: easy
+    reward: 120
+    objectives: [ "FISH:COD:12", "ITEM:COOKED_COD:12" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "FISH:ANY:10", "KILL:SQUID:4", "ITEM:INK_SAC:8" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "FISH:SALMON:6", "ITEM:COOKED_SALMON:6" ]
+  - tier: easy
+    reward: 140
+    objectives: [ "FISH:ANY:12", "ITEM:LILY_PAD:4", "ITEM:KELP:32" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "FISH:ANY:35", "ITEM:COOKED_COD:16", "ITEM:COOKED_SALMON:8" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "FISH:SALMON:12", "FISH:COD:20" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "KILL:GLOW_SQUID:4", "ITEM:GLOW_INK_SAC:8", "ITEM:SEA_PICKLE:8" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "FISH:ANY:25", "ITEM:KELP:64", "ITEM:DRIED_KELP_BLOCK:8" ]
+  - tier: normal
+    reward: 210
+    objectives: [ "FISH:ANY:30", "KILL:DROWNED:6", "ITEM:COPPER_INGOT:8" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "FISH:PUFFERFISH:3", "FISH:ANY:20", "ITEM:PUFFERFISH:2" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "FISH:ANY:80", "ITEM:COOKED_COD:32", "ITEM:COOKED_SALMON:16" ]
+  - tier: hard
+    reward: 310
+    objectives: [ "FISH:PUFFERFISH:6", "FISH:TROPICAL_FISH:2", "ITEM:PUFFERFISH:2" ]
+  - tier: hard
+    reward: 320
+    objectives: [ "FISH:ANY:60", "ITEM:NAME_TAG:1" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "FISH:ANY:40", "ITEM:NAUTILUS_SHELL:1", "ITEM:COOKED_SALMON:16" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "KILL:GUARDIAN:6", "FISH:ANY:30", "ITEM:PRISMARINE_SHARD:16" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "FISH:SALMON:24", "KILL:SQUID:8", "ITEM:BOOK:6" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "FISH:#fish:15", "SMELT:COOKED_COD:12" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "FISH:ANY:30", "CRAFT:BUCKET:2" ]
+  - tier: hard
+    reward: 300
+    min-rank: artisan
+    objectives: [ "EXPLORE:WARM_OCEAN:1", "FISH:TROPICAL_FISH:4", "ITEM:SEA_PICKLE:16" ]
+
+weekly:
+  - reward: 900
+    xp: 200
+    objectives: [ "FISH:#fish:300", "ITEM:COOKED_SALMON:64" ]
+  - reward: 950
+    xp: 200
+    objectives: [ "FISH:ANY:250", "KILL:SQUID:30", "ITEM:INK_SAC:32" ]
+  - reward: 1000
+    xp: 220
+    min-rank: artisan
+    objectives: [ "KILL:GUARDIAN:40", "ITEM:PRISMARINE:32", "ITEM:SPONGE:2" ]
+
+rare:
+  - tier: hard
+    reward: 450
+    objectives: [ "FISH:ANY:60", "ITEM:NAUTILUS_SHELL:2" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "EXPLORE:FROZEN_OCEAN:1", "FISH:SALMON:12" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "KILL:GLOW_SQUID:6", "ITEM:GLOW_ITEM_FRAME:4" ]
+
+story:
+  - rank: apprenti
+    title: "<primary>La première prise"
+    text: [ "<info>Le vieux Yann répare ses filets sur le ponton.", "<info>« La mer donne à ceux qui savent attendre. »" ]
+    reward: 300
+    xp: 150
+    objectives: [ "FISH:#fish:40", "ITEM:COOKED_COD:16" ]
+  - rank: compagnon
+    title: "<primary>Le banc de saumons"
+    text: [ "<info>Les saumons remontent la rivière, c'est le moment." ]
+    reward: 500
+    xp: 200
+    objectives: [ "FISH:SALMON:32", "SMELT:COOKED_SALMON:32" ]
+  - rank: artisan
+    title: "<primary>Les mers chaudes"
+    text: [ "<info>Yann te parle de poissons aux mille couleurs, très loin au sud." ]
+    reward: 800
+    xp: 300
+    objectives: [ "EXPLORE:WARM_OCEAN:1", "FISH:TROPICAL_FISH:8", "FISH:PUFFERFISH:8" ]
+  - rank: expert
+    title: "<primary>Le temple englouti"
+    text: [ "<info>Un temple dort au fond de l'océan, gardé par des créatures étranges." ]
+    reward: 1200
+    xp: 400
+    objectives: [ "KILL:GUARDIAN:30", "KILL:ELDER_GUARDIAN:1", "ITEM:SPONGE:4" ]
+  - rank: maitre
+    title: "<primary>Le seigneur des mers"
+    text: [ "<info>Yann te tend sa canne la plus précieuse.", "<info>« L'océan t'appartient. »" ]
+    reward: 2000
+    xp: 500
+    objectives: [ "FISH:ANY:500", "ITEM:NAUTILUS_SHELL:4" ]

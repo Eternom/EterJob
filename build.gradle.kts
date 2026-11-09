@@ -23,16 +23,28 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:26.2.build.129-stable")
 
-    // Socle commun : base, Redis, langues, menus (plugin EterLib installé sur le serveur)
-    compileOnly("com.github.Eternom:EterLib:1.20.1")
-    // PNJ : apparition, regard, emplacements (plugin EterNpc installé sur le serveur)
-    compileOnly("com.github.Eternom:EterNpc:1.1.0")
+    // Socle commun : base, Redis, langues, menus, actions (plugin EterLib installé sur le serveur)
+    compileOnly("com.github.Eternom:EterLib:1.22.0")
+    // PNJ (softdepend) : marqueur « ! » au-dessus du donneur de quêtes, nettoyage des anciens PNJ d'EterMarket
+    compileOnly("com.github.Eternom:EterNpc:2.0.0")
     // Argent : l'API d'EterEconomy (chaque mouvement avec sa source)
     compileOnly("com.github.Eternom:EterEconomy:2.2.2")
+    // Terrains des clans (softdepend) : pas de progrès sur le terrain d'un autre clan
+    compileOnly("com.github.Eternom:EterClan:1.7.0")
+
+    // Tests de la logique pure (niveaux, objectifs)
+    testImplementation("io.papermc.paper:paper-api:26.2.build.129-stable")
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks {
@@ -64,11 +76,11 @@ val deployPlugin by tasks.registering(Copy::class) {
 }
 tasks.build { finalizedBy(deployPlugin) }
 
-// Publié pour les autres plugins (son API, fr.eternom.eterMarket.api) : compileOnly("com.github.Eternom:EterMarket:<tag>")
+// Publié pour les autres plugins (son API, fr.eternom.eterJob.api) : compileOnly("com.github.Eternom:EterJob:<tag>")
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            artifactId = "EterMarket"
+            artifactId = "EterJob"
             from(components["java"])
         }
     }

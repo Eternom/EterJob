@@ -1,0 +1,135 @@
+# Quêtes du métier « mineur » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+#
+# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
+# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
+# Objectif : "TYPE:CIBLE:QUANTITÉ"
+#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
+#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
+#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
+#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
+#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
+#   TRADE    commercer avec un villageois
+# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
+# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
+#
+# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
+# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
+#          (title, text : le lore, en MiniMessage).
+
+daily:
+  - tier: easy
+    reward: 120
+    objectives: [ "BREAK:STONE:128", "ITEM:COAL:16" ]
+  - tier: easy
+    reward: 120
+    objectives: [ "BREAK:COAL_ORE:16", "ITEM:TORCH:32" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "BREAK:COPPER_ORE:12", "ITEM:COPPER_INGOT:24" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "BREAK:DIORITE:32", "BREAK:ANDESITE:32", "BREAK:GRANITE:32" ]
+  - tier: easy
+    reward: 140
+    objectives: [ "BREAK:STONE:96", "ITEM:FURNACE:4", "ITEM:STONE_BRICKS:32" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:IRON_ORE:16", "ITEM:IRON_INGOT:16" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:DEEPSLATE:192", "BREAK:TUFF:32", "ITEM:POLISHED_DEEPSLATE:32" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "BREAK:REDSTONE_ORE:6", "BREAK:LAPIS_ORE:4", "ITEM:REDSTONE:32", "ITEM:LAPIS_LAZULI:16" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "BREAK:GOLD_ORE:8", "ITEM:GOLD_INGOT:8", "ITEM:RAIL:32" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:NETHERRACK:128", "BREAK:NETHER_QUARTZ_ORE:12", "ITEM:QUARTZ:32" ]
+  - tier: normal
+    reward: 210
+    objectives: [ "BREAK:AMETHYST_CLUSTER:8", "ITEM:AMETHYST_SHARD:24", "ITEM:CALCITE:16" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "BREAK:DEEPSLATE_DIAMOND_ORE:4", "ITEM:DIAMOND:6", "ITEM:IRON_BLOCK:2" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "BREAK:DEEPSLATE_IRON_ORE:24", "BREAK:DEEPSLATE_GOLD_ORE:8", "BREAK:DEEPSLATE_REDSTONE_ORE:8", "ITEM:IRON_INGOT:16" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "BREAK:OBSIDIAN:12", "ITEM:OBSIDIAN:12", "ITEM:DIAMOND:2" ]
+  - tier: hard
+    reward: 320
+    objectives: [ "BREAK:ANCIENT_DEBRIS:2", "BREAK:BASALT:64", "ITEM:NETHERITE_SCRAP:2" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "BREAK:EMERALD_ORE:2", "ITEM:EMERALD:4", "ITEM:GOLD_BLOCK:2" ]
+  - tier: hard
+    reward: 280
+    objectives: [ "BREAK:BLACKSTONE:96", "BREAK:NETHER_GOLD_ORE:16", "ITEM:GOLD_INGOT:8" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "SMELT:IRON_INGOT:16", "ITEM:IRON_INGOT:8" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "BREAK:#ores:48", "CRAFT:RAIL:32" ]
+  - tier: hard
+    reward: 300
+    min-rank: artisan
+    objectives: [ "EXPLORE:DEEP_DARK:1", "BREAK:SCULK:32", "ITEM:ECHO_SHARD:1" ]
+
+weekly:
+  - reward: 900
+    xp: 200
+    objectives: [ "BREAK:#ores:400", "ITEM:IRON_BLOCK:8" ]
+  - reward: 950
+    xp: 200
+    objectives: [ "BREAK:DEEPSLATE:2000", "SMELT:IRON_INGOT:128" ]
+  - reward: 1000
+    xp: 220
+    min-rank: artisan
+    objectives: [ "BREAK:ANCIENT_DEBRIS:6", "ITEM:NETHERITE_INGOT:1" ]
+
+rare:
+  - tier: hard
+    reward: 450
+    objectives: [ "BREAK:DEEPSLATE_EMERALD_ORE:2", "ITEM:EMERALD_BLOCK:1" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "EXPLORE:DRIPSTONE_CAVES:1", "BREAK:POINTED_DRIPSTONE:32" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "EXPLORE:LUSH_CAVES:1", "ITEM:GLOW_BERRIES:16" ]
+
+story:
+  - rank: apprenti
+    title: "<primary>La première galerie"
+    text: [ "<info>Le vieux Brann te tend une pioche ébréchée.", "<info>« Prouve que tu sais creuser, et la guilde t'ouvrira ses portes. »" ]
+    reward: 300
+    xp: 150
+    objectives: [ "BREAK:STONE:256", "ITEM:COAL:32" ]
+  - rank: compagnon
+    title: "<primary>Le filon de fer"
+    text: [ "<info>Les forges de la guilde manquent de fer.", "<info>Brann t'indique une veine oubliée, sous les collines." ]
+    reward: 500
+    xp: 200
+    objectives: [ "BREAK:IRON_ORE:48", "SMELT:IRON_INGOT:48", "ITEM:IRON_BLOCK:4" ]
+  - rank: artisan
+    title: "<primary>Les abîmes"
+    text: [ "<info>Sous l'ardoise des abîmes dorment des pierres plus rares.", "<info>« Ne descends jamais sans torches. »" ]
+    reward: 800
+    xp: 300
+    objectives: [ "BREAK:DEEPSLATE_DIAMOND_ORE:8", "ITEM:DIAMOND:12" ]
+  - rank: expert
+    title: "<primary>Le cœur du Nether"
+    text: [ "<info>Une légende parle d'un métal plus dur que le diamant.", "<info>Brann t'avoue l'avoir cherché toute sa vie." ]
+    reward: 1200
+    xp: 400
+    objectives: [ "BREAK:ANCIENT_DEBRIS:8", "ITEM:NETHERITE_INGOT:2" ]
+  - rank: maitre
+    title: "<primary>Le maître des profondeurs"
+    text: [ "<info>Brann pose sa pioche sur l'établi.", "<info>« La guilde n'a plus rien à t'apprendre. Elle a tout à apprendre de toi. »" ]
+    reward: 2000
+    xp: 500
+    objectives: [ "BREAK:#ores:1000", "ITEM:DIAMOND_BLOCK:2", "ITEM:NETHERITE_INGOT:2" ]

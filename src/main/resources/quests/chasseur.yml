@@ -1,0 +1,135 @@
+# Quêtes du métier « chasseur » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+#
+# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
+# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
+# Objectif : "TYPE:CIBLE:QUANTITÉ"
+#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
+#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
+#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
+#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
+#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
+#   TRADE    commercer avec un villageois
+# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
+# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
+#
+# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
+# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
+#          (title, text : le lore, en MiniMessage).
+
+daily:
+  - tier: easy
+    reward: 120
+    objectives: [ "KILL:ZOMBIE:15", "ITEM:ROTTEN_FLESH:16" ]
+  - tier: easy
+    reward: 120
+    objectives: [ "KILL:SKELETON:12", "ITEM:BONE:16" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "KILL:SPIDER:10", "ITEM:STRING:16" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "KILL:ANY:30", "ITEM:ARROW:32" ]
+  - tier: easy
+    reward: 140
+    objectives: [ "KILL:ZOMBIE:10", "KILL:SKELETON:10", "KILL:SPIDER:10" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "KILL:CREEPER:10", "ITEM:GUNPOWDER:16", "ITEM:TNT:2" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "KILL:DROWNED:10", "KILL:HUSK:10", "ITEM:ROTTEN_FLESH:32" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "KILL:SPIDER:12", "ITEM:SPIDER_EYE:8", "ITEM:FERMENTED_SPIDER_EYE:2" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "KILL:SLIME:15", "ITEM:SLIME_BALL:12" ]
+  - tier: normal
+    reward: 210
+    objectives: [ "KILL:ANY:60", "KILL:CREEPER:6", "ITEM:BONE_MEAL:32" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "KILL:STRAY:8", "ITEM:ARROW:64", "ITEM:BOW:1" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "KILL:ENDERMAN:10", "ITEM:ENDER_PEARL:8", "ITEM:ENDER_EYE:2" ]
+  - tier: hard
+    reward: 310
+    objectives: [ "KILL:BLAZE:12", "ITEM:BLAZE_ROD:8", "ITEM:BLAZE_POWDER:8" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "KILL:WITHER_SKELETON:8", "ITEM:COAL:32", "ITEM:BONE:32" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "KILL:WITCH:3", "KILL:PHANTOM:4", "ITEM:PHANTOM_MEMBRANE:4" ]
+  - tier: hard
+    reward: 320
+    objectives: [ "KILL:GUARDIAN:10", "ITEM:PRISMARINE_SHARD:16", "ITEM:PRISMARINE_CRYSTALS:8" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "KILL:MAGMA_CUBE:12", "KILL:GHAST:2", "ITEM:MAGMA_CREAM:8", "ITEM:GHAST_TEAR:1" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "KILL:ANY:25", "CRAFT:ARROW:32" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "KILL:PILLAGER:6", "ITEM:CROSSBOW:1" ]
+  - tier: hard
+    reward: 300
+    min-rank: artisan
+    objectives: [ "KILL:PIGLIN_BRUTE:2", "KILL:HOGLIN:6", "ITEM:COOKED_PORKCHOP:16" ]
+
+weekly:
+  - reward: 900
+    xp: 200
+    objectives: [ "KILL:ANY:500", "ITEM:BONE_BLOCK:16" ]
+  - reward: 950
+    xp: 200
+    objectives: [ "KILL:ENDERMAN:60", "ITEM:ENDER_EYE:8" ]
+  - reward: 1000
+    xp: 220
+    min-rank: artisan
+    objectives: [ "KILL:WITHER_SKELETON:40", "KILL:BLAZE:40", "ITEM:WITHER_SKELETON_SKULL:1" ]
+
+rare:
+  - tier: hard
+    reward: 450
+    objectives: [ "KILL:EVOKER:1", "ITEM:TOTEM_OF_UNDYING:1" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "KILL:BREEZE:4", "ITEM:BREEZE_ROD:4" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "KILL:WITCH:4", "ITEM:GLOWSTONE_DUST:16" ]
+
+story:
+  - rank: apprenti
+    title: "<primary>La première traque"
+    text: [ "<info>Le vieux veneur Garrick aiguise sa lame.", "<info>« La nuit, les monstres sortent. Montre-moi que tu n'as pas peur. »" ]
+    reward: 300
+    xp: 150
+    objectives: [ "KILL:ZOMBIE:30", "KILL:SKELETON:30" ]
+  - rank: compagnon
+    title: "<primary>Les toiles"
+    text: [ "<info>Des araignées infestent les mines abandonnées." ]
+    reward: 500
+    xp: 200
+    objectives: [ "KILL:SPIDER:40", "KILL:CAVE_SPIDER:20", "ITEM:STRING:64" ]
+  - rank: artisan
+    title: "<primary>La forteresse"
+    text: [ "<info>Une forteresse du Nether abrite des squelettes noirs.", "<info>Garrick veut leurs crânes." ]
+    reward: 800
+    xp: 300
+    objectives: [ "KILL:WITHER_SKELETON:30", "KILL:BLAZE:20" ]
+  - rank: expert
+    title: "<primary>Les pillards"
+    text: [ "<info>Des pillards menacent les villages de la région." ]
+    reward: 1200
+    xp: 400
+    objectives: [ "KILL:PILLAGER:30", "KILL:VINDICATOR:10", "KILL:EVOKER:2" ]
+  - rank: maitre
+    title: "<primary>Le grand veneur"
+    text: [ "<info>Garrick te remet son cor de chasse.", "<info>« Que tous les monstres du monde entendent ton nom. »" ]
+    reward: 2000
+    xp: 500
+    objectives: [ "KILL:ANY:1500", "ITEM:WITHER_SKELETON_SKULL:2" ]

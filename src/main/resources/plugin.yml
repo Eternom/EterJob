@@ -1,27 +1,32 @@
-name: EterMarket
+name: EterJob
 version: '${version}'
 
-main: fr.eternom.eterMarket.Main
+main: fr.eternom.eterJob.Main
 api-version: '26.2'
 load: POSTWORLD
 authors: [ NadTum ]
-description: Marché du réseau (PNJ boutiques, guilde des métiers et ses quêtes, stock commun, hôtel des ventes).
-depend: [EterLib, EterEconomy, EterNpc]
+description: La guilde des métiers (quêtes du jour, de la semaine, histoire, niveaux, rangs, avantages dans le monde ressource).
+depend: [EterLib, EterEconomy]
+# EterNpc : marqueur « ! » au-dessus du donneur de quêtes ; EterClan : pas de progrès sur le terrain d'un autre clan
+softdepend: [EterNpc, EterClan, EterSuccess]
 
 commands:
-  market:
-    description: Gestion des PNJ du marché (staff).
-    usage: /market <create|place|remove|edit|delete|list|reload|jobs>
-    permission: etermarket.admin
+  job:
+    description: Tes quêtes de métier, la guilde, les avantages, l'historique, le classement.
+    usage: /job [guilde|avantages|historique|top <métier>|messages|<joueur>]
+    aliases: [jobs, metier, metiers]
+    permission: eterjob.use
+  eterjob:
+    description: Gestion des métiers (staff).
+    usage: /eterjob <player|setjob|cooldown|clearquests|reroll|remove|setlevel|addxp|setstory|quests|reload|stats|event>
+    permission: eterjob.admin
 
-# Hôtel des ventes : etermarket.auction.listings.<n> (ex : etermarket.auction.listings.10) permet n annonces
-# en même temps ; sans elle, auction.default-listings.
 permissions:
-  etermarket.edit:
-    description: Ouvrir l'éditeur d'une boutique (Maj + clic droit sur le PNJ).
-    default: op
-  etermarket.admin:
-    description: Toutes les permissions d'EterMarket (dont /market).
+  eterjob.use:
+    description: Les métiers (/job), et les PNJ de la guilde.
+    default: true
+  eterjob.admin:
+    description: Gestion des métiers (/eterjob) et alertes de cadence anormale.
     default: op
     children:
-      etermarket.edit: true
+      eterjob.use: true

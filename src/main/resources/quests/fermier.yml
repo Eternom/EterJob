@@ -1,0 +1,135 @@
+# Quêtes du métier « fermier » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+#
+# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
+# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
+# Objectif : "TYPE:CIBLE:QUANTITÉ"
+#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
+#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
+#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
+#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
+#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
+#   TRADE    commercer avec un villageois
+# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
+# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
+#
+# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
+# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
+#          (title, text : le lore, en MiniMessage).
+
+daily:
+  - tier: easy
+    reward: 120
+    objectives: [ "HARVEST:WHEAT:64", "ITEM:BREAD:16" ]
+  - tier: easy
+    reward: 120
+    objectives: [ "HARVEST:CARROTS:64", "ITEM:CARROT:32" ]
+  - tier: easy
+    reward: 120
+    objectives: [ "HARVEST:POTATOES:64", "ITEM:BAKED_POTATO:24" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "ITEM:SUGAR_CANE:48", "ITEM:PAPER:24" ]
+  - tier: easy
+    reward: 140
+    objectives: [ "HARVEST:WHEAT:48", "ITEM:EGG:8", "ITEM:HAY_BLOCK:4" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "HARVEST:BEETROOTS:64", "ITEM:BEETROOT_SOUP:8" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:PUMPKIN:24", "ITEM:PUMPKIN_PIE:8", "ITEM:CARVED_PUMPKIN:4" ]
+  - tier: normal
+    reward: 190
+    objectives: [ "BREAK:MELON:24", "ITEM:MELON_SLICE:64", "ITEM:GLISTERING_MELON_SLICE:2" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "HARVEST:WHEAT:32", "ITEM:LEATHER:8", "ITEM:COOKED_BEEF:16" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "HARVEST:WHEAT:32", "ITEM:WHITE_WOOL:16", "ITEM:COOKED_MUTTON:8" ]
+  - tier: normal
+    reward: 210
+    objectives: [ "HARVEST:WHEAT:64", "HARVEST:CARROTS:64", "HARVEST:POTATOES:64" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "HARVEST:NETHER_WART:64", "ITEM:NETHER_WART:64", "ITEM:FERMENTED_SPIDER_EYE:4" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "HARVEST:COCOA:32", "ITEM:COOKIE:32", "ITEM:CAKE:2" ]
+  - tier: hard
+    reward: 300
+    objectives: [ "HARVEST:CARROTS:96", "ITEM:GOLDEN_CARROT:16", "ITEM:RABBIT_STEW:2" ]
+  - tier: hard
+    reward: 290
+    objectives: [ "HARVEST:POTATOES:64", "HARVEST:CARROTS:64", "ITEM:COOKED_PORKCHOP:16", "ITEM:FEATHER:16" ]
+  - tier: hard
+    reward: 310
+    objectives: [ "HARVEST:SWEET_BERRY_BUSH:32", "ITEM:HONEY_BOTTLE:4", "ITEM:HONEYCOMB:8" ]
+  - tier: hard
+    reward: 280
+    objectives: [ "HARVEST:BEETROOTS:64", "BREAK:MELON:32", "BREAK:PUMPKIN:32" ]
+  - tier: easy
+    reward: 130
+    objectives: [ "BREED:COW:6", "ITEM:LEATHER:8" ]
+  - tier: normal
+    reward: 200
+    objectives: [ "HARVEST:#crops:192", "CRAFT:BREAD:32" ]
+  - tier: hard
+    reward: 300
+    min-rank: artisan
+    objectives: [ "BREED:SHEEP:10", "BREED:PIG:10", "ITEM:COOKED_PORKCHOP:24" ]
+
+weekly:
+  - reward: 900
+    xp: 200
+    objectives: [ "HARVEST:#crops:2500", "ITEM:HAY_BLOCK:16" ]
+  - reward: 950
+    xp: 200
+    objectives: [ "BREED:COW:30", "BREED:CHICKEN:30", "ITEM:CAKE:4" ]
+  - reward: 1000
+    xp: 220
+    min-rank: artisan
+    objectives: [ "HARVEST:NETHER_WART:500", "ITEM:GOLDEN_CARROT:32" ]
+
+rare:
+  - tier: normal
+    reward: 300
+    objectives: [ "TRADE:ANY:4", "ITEM:EMERALD:4" ]
+  - tier: hard
+    reward: 450
+    objectives: [ "BREED:BEE:4", "ITEM:HONEY_BLOCK:4" ]
+  - tier: normal
+    reward: 300
+    objectives: [ "EXPLORE:SUNFLOWER_PLAINS:1", "ITEM:SUNFLOWER:8" ]
+
+story:
+  - rank: apprenti
+    title: "<primary>Le premier champ"
+    text: [ "<info>La fermière Odile te confie un sac de graines.", "<info>« La terre rend ce qu'on lui donne. »" ]
+    reward: 300
+    xp: 150
+    objectives: [ "HARVEST:WHEAT:192", "ITEM:BREAD:32" ]
+  - rank: compagnon
+    title: "<primary>L'étable"
+    text: [ "<info>La guilde veut un troupeau digne de ce nom." ]
+    reward: 500
+    xp: 200
+    objectives: [ "BREED:COW:16", "BREED:SHEEP:16" ]
+  - rank: artisan
+    title: "<primary>Le banquet"
+    text: [ "<info>Le village organise une fête : il faut nourrir tout le monde." ]
+    reward: 800
+    xp: 300
+    objectives: [ "HARVEST:#crops:768", "ITEM:CAKE:6", "ITEM:PUMPKIN_PIE:16" ]
+  - rank: expert
+    title: "<primary>Les cultures maudites"
+    text: [ "<info>Les alchimistes paient cher la verrue du Nether." ]
+    reward: 1200
+    xp: 400
+    objectives: [ "HARVEST:NETHER_WART:640", "ITEM:FERMENTED_SPIDER_EYE:8" ]
+  - rank: maitre
+    title: "<primary>La corne d'abondance"
+    text: [ "<info>Odile te regarde, émue.", "<info>« Plus personne n'aura faim, grâce à toi. »" ]
+    reward: 2000
+    xp: 500
+    objectives: [ "HARVEST:#crops:3000", "ITEM:GOLDEN_CARROT:64" ]
