@@ -93,5 +93,5 @@ pour EterResource), `topQuests`, `questRank`. Événements : `JobQuestCompleteEv
 `eterjob_members`, `eterjob_levels`, `eterjob_quests` (emplacements 0-2 du jour, 3 bonus, 4 semaine, 5 histoire),
 `eterjob_box`, `eterjob_log` (60 jours), `eterjob_events`.
 
-**2.0.0** : supprime une fois les tables `etermarket_*` et les emplacements des PNJ `etermarket:*` (pas de reprise :
-métiers et quêtes repartent de zéro). **2.0.1** : la même, sans ce nettoyage.
+**2.0.0** a supprimé une fois les tables `etermarket_*` et les emplacements des PNJ `etermarket:*` (sans reprise) ;
+ce nettoyage est retiré depuis la 2.0.1.

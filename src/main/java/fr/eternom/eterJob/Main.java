@@ -23,7 +23,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.time.DateTimeException;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -55,7 +54,6 @@ public final class Main extends JavaPlugin {
         EterLib lib = EterLib.get();
         messages = lib.messages(this, "en_us", "fr_fr");
         JobRepository repository = new JobRepository(lib.database(TABLE_PREFIX));
-        cleanupMarket(repository);
         JobSettings settings = JobSettings.load(getConfig(), getLogger());
         service = new JobService(this, repository, settings, QuestCatalog.load(this, settings.icons().keySet()), messages, zone());
         NetworkBus bus = lib.network(this, "eterjob", messages);
@@ -91,26 +89,6 @@ public final class Main extends JavaPlugin {
         JobSettings settings = JobSettings.load(getConfig(), getLogger());
         service.reload(settings, QuestCatalog.load(this, settings.icons().keySet()));
         getServer().getOnlinePlayers().forEach(service.progress()::reload);
-    }
-
-    /**
-     * EterJob 2.0.0 : nettoyage UNIQUE de l'ancien EterMarket (boutiques, hôtel des ventes, stock, anciens métiers :
-     * tables etermarket_*), et des emplacements de ses PNJ chez EterNpc (etermarket:*). Pas de reprise des données.
-     * Retiré en 2.0.1.
-     */
-    private void cleanupMarket(JobRepository repository) {
-        List<String> dropped = repository.dropMarketTables();
-        if (!dropped.isEmpty()) {
-            getLogger().warning("Nettoyage d'EterMarket : tables supprimées " + dropped);
-        }
-        if (getServer().getPluginManager().isPluginEnabled("EterNpc")) {
-            Tasks.async(this, () -> {
-                int removed = MarketNpcCleanup.removeMarketPlacements();
-                if (removed > 0) {
-                    getLogger().warning("Nettoyage d'EterMarket : " + removed + " emplacement(s) de PNJ etermarket:* supprimés");
-                }
-            }, "Emplacements des PNJ d'EterMarket non supprimés");
-        }
     }
 
     private void register(String name, TabExecutor executor) {

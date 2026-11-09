@@ -431,21 +431,6 @@ public class JobRepository {
         database.execute("DELETE FROM " + database.table(EVENTS));
     }
 
-    // ---------- Nettoyage (2.0.0) ----------
-
-    /** Supprime les tables d'EterMarket (etermarket_*). Renvoie les tables supprimées. */
-    public List<String> dropMarketTables() {
-        List<String> dropped = new ArrayList<>();
-        for (Row row : database.query("SELECT TABLE_NAME AS name FROM information_schema.TABLES"
-                + " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'etermarket\\_%'")) {
-            String name = row.getString("name");
-            if (name.matches("etermarket_[a-z0-9_]+")) {
-                database.execute("DROP TABLE IF EXISTS `" + name + "`");
-                dropped.add(name);
-            }
-        }
-        return dropped;
-    }
 
     private static JobLevel toLevel(Row row) {
         return new JobLevel(row.getString("job"), row.getInt("xp"), row.getInt("completed"), row.getInt("rank_rewarded"),
