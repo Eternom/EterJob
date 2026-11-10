@@ -40,6 +40,9 @@ public final class JobActions {
         actions.register(plugin, "eterjob:perks", "Les avantages d'un métier par rang", List.of(new Argument("métier", false,
                 typed -> List.copyOf(service.settings().icons().keySet()))),
                 (player, args) -> gui.openPerks(player, args.isEmpty() ? null : args.getFirst().toLowerCase()));
+        // Le relais de la guilde (camp du monde ressource...) : le donneur de quêtes de SON métier, objets compris
+        actions.register(plugin, "eterjob:relay", "Le donneur de quêtes du métier du joueur (relais de la guilde)", List.of(),
+                (player, args) -> gui.openQuests(player, null, false));
         actions.register(plugin, "eterjob:story", "L'histoire d'un métier (maître du métier)", List.of(job),
                 (player, args) -> gui.openStory(player, args.getFirst().toLowerCase()));
         actions.register(plugin, "eterjob:ranking", "Le classement d'un métier", List.of(job),

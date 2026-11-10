@@ -24,6 +24,7 @@ EterJob ne définit plus de PNJ : il **déclare des actions** dans EterLib, que 
 | `eterjob:guild` | Le **chef de guilde** : choisir ou changer de métier, son niveau dans chacun, avantages, classement |
 | `eterjob:quests <métier>` | Le **donneur de quêtes** du métier (un joueur d'un autre métier est envoyé au chef de guilde) |
 | `eterjob:story <métier>` | Le **maître du métier** : l'étape d'histoire en cours (lore dans le chat), puis les quêtes |
+| `eterjob:relay` | Le **relais de la guilde** (camp du monde ressource) : le donneur de quêtes du métier du joueur, objets compris |
 | `eterjob:perks [métier]` | Les avantages par rang (ex : un PNJ du monde ressource) |
 | `eterjob:menu` · `eterjob:ranking <métier>` | `/job` · le classement d'un métier |
 | `?eterjob:has-job [métier]` · `?eterjob:rank <métier> <rang>` | Conditions |
@@ -51,7 +52,9 @@ après un changement), relu par `/eterjob reload`. Ce qu'EterJob lit de chaque q
 `weekly`, `rare`, `story`), `tier`, `reward`, `xp`, `min-rank`, `rank` (l'étape d'histoire de ce rang). Une quête peut
 avoir des **étapes**, des objectifs **bonus**, des conditions de lieu et de moment (`where` : la nuit, sous l'orage,
 sous Y 0, dans un biome, dans le Nether), un **temps limité**, des **conditions** (`requires`, ex : réputation auprès
-d'un PNJ). 248 quêtes au départ (environ 50 par métier).
+d'un PNJ). 266 quêtes au départ (environ 50 par métier), dont des **quêtes du monde ressource** (`where: {servers:
+[ressource]}`, signaux d'EterResource : météorite, trésor, défi, lieux découverts, thème ; certaines rapportent du temps
+de monde ressource).
 
 **Quêtes du village** (fermier, pêcheur) : une quête de métier peut se faire au lobby, chez un PNJ du village
 (Mathurin le Fermier `eternpc:farmer`, Aurèle le Vigneron `eternpc:vigneron`, Gaspard le Poissonnier

@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 2
+version: 3
 defaults:
   category: job
   tags: [fermier]
@@ -366,3 +366,34 @@ quests:
     reputation: 3
     meta: {kind: weekly, reward: 950, xp: 200}
     objectives: [ "BREED:ANY:80", "DELIVER:LEATHER:32", "DELIVER:WHITE_WOOL:64" ]
+
+  # ---------- Monde ressource (camp de base, lieux, événements) ----------
+  fermier-ressource-terres:
+    name: "<primary>Les terres sauvages"
+    description: [ "<info>Les villages des mondes ressources ont des champs à moissonner." ]
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: harvest, target: "#crops", amount: 96, where: {servers: [ressource]}}
+  fermier-ressource-troupeau:
+    name: "<light_purple>Le troupeau sauvage"
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 330}
+    objectives:
+      - {type: breed, target: ANY, amount: 12, where: {servers: [ressource]}}
+      - {type: signal, key: eterresource:arrive, match: {theme: [jungle, foret]}, amount: 1, scale: false, optional: true, text: "En jungle ou en forêt"}
+  fermier-ressource-expedition:
+    name: "<light_purple>L'expédition du fermier"
+    reputation: 2
+    rewards: [ "action: eterresource:addtime 10" ]
+    meta: {kind: rare, tier: hard, reward: 450}
+    stages:
+      - id: partir
+        text: "<info>Pars en monde ressource"
+        objectives:
+          - {type: signal, key: eterresource:arrive, amount: 1, scale: false, text: "Arriver en monde ressource"}
+      - id: recolter
+        text: "<info>Rapporte des graines rares et des récoltes"
+        objectives:
+          - {type: harvest, target: "#crops", amount: 64, where: {servers: [ressource]}}
+          - {type: deliver, target: PUMPKIN_SEEDS, amount: 8}
+          - {type: deliver, target: MELON_SEEDS, amount: 8}

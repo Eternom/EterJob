@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 1
+version: 2
 defaults:
   category: job
   tags: [chasseur]
@@ -275,3 +275,38 @@ quests:
       - {type: kill, target: ANY, amount: 150, where: {dimension: nether}}
       - {type: kill, target: ENDERMAN, amount: 30, where: {dimension: the_end}}
       - {type: deliver, target: ENDER_PEARL, amount: 16}
+
+  # ---------- Monde ressource (camp de base, lieux, événements) ----------
+  chasseur-ressource-battue:
+    name: "<primary>La battue d'expédition"
+    meta: {kind: daily, tier: normal, reward: 220}
+    objectives:
+      - {type: kill, target: ANY, amount: 40, where: {servers: [ressource]}}
+  chasseur-ressource-nuit:
+    name: "<light_purple>La nuit sauvage"
+    description: [ "<info>En monde ressource, la nuit, les monstres sont plus coriaces... et plus riches." ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 460}
+    objectives:
+      - {type: kill, target: ANY, amount: 30, where: {servers: [ressource], time: night}}
+  chasseur-ressource-donjon:
+    name: "<light_purple>Le donjon oublié"
+    reputation: 3
+    rewards: [ "action: eterresource:addtime 10" ]
+    meta: {kind: rare, tier: hard, reward: 480}
+    stages:
+      - id: trouver
+        text: "<info>Trouve un donjon oublié (carnet d'expédition, au camp)"
+        objectives:
+          - {type: signal, key: eterresource:discover, match: {place: dungeon}, amount: 1, scale: false, text: "Découvrir un donjon oublié"}
+      - id: nettoyer
+        text: "<info>Nettoie les environs"
+        objectives:
+          - {type: kill, target: ANY, amount: 20, where: {servers: [ressource]}}
+  chasseur-ressource-tresor:
+    name: "<light_purple>Le chasseur de trésor"
+    reputation: 3
+    rewards: [ "action: eterresource:addtime 15" ]
+    meta: {kind: rare, tier: hard, reward: 500}
+    objectives:
+      - {type: signal, key: eterresource:treasure, amount: 1, scale: false, text: "Trouver le trésor caché d'un monde ressource"}

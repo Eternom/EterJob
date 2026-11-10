@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 1
+version: 2
 defaults:
   category: job
   tags: [mineur]
@@ -275,3 +275,48 @@ quests:
       - {type: break, target: "#ores", amount: 300, where: {max-y: 0}}
       - {type: break, target: "#ores", amount: 100, where: {dimension: nether}}
       - {type: deliver, target: DIAMOND, amount: 8}
+
+  # ---------- Monde ressource (camp de base, lieux, événements) ----------
+  mineur-ressource-galerie:
+    name: "<primary>La galerie d'expédition"
+    description: [ "<info>Le vrai minerai, c'est en monde ressource qu'on le trouve." ]
+    meta: {kind: daily, tier: normal, reward: 220}
+    objectives:
+      - {type: break, target: "#ores", amount: 64, where: {servers: [ressource]}}
+  mineur-ressource-cratere:
+    name: "<light_purple>Le cratère de la météorite"
+    description: [ "<info>Une pierre tombée du ciel, pleine de trésors : sois le premier sur place." ]
+    reputation: 3
+    rewards: [ "action: eterresource:addtime 10" ]
+    meta: {kind: rare, tier: hard, reward: 480}
+    objectives:
+      - {type: signal, key: eterresource:meteor, amount: 6, scale: false, text: "Minerais du cratère de la météorite"}
+  mineur-ressource-filon:
+    name: "<light_purple>Le filon riche"
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 340}
+    stages:
+      - id: trouver
+        text: "<info>Trouve un filon riche (carnet d'expédition, au camp)"
+        objectives:
+          - {type: signal, key: eterresource:discover, match: {place: deposit}, amount: 1, scale: false, text: "Découvrir un filon riche"}
+      - id: exploiter
+        text: "<info>Exploite-le"
+        objectives:
+          - {type: break, target: "#ores", amount: 40, where: {servers: [ressource]}}
+  mineur-ressource-ruee:
+    name: "<light_purple>La ruée vers l'or"
+    description: [ "<info>Quand la ruée est annoncée, chaque coup de pioche compte double." ]
+    reputation: 2
+    rewards: [ "action: eterresource:addtime 10" ]
+    meta: {kind: rare, tier: normal, reward: 330}
+    stages:
+      - id: annonce
+        text: "<info>Attends une ruée vers l'or en monde ressource"
+        objectives:
+          - {type: signal, key: eterresource:event, match: {event: gold-rush}, amount: 1, scale: false, text: "Vivre une ruée vers l'or"}
+      - id: miner
+        text: "<info>Mine pendant la ruée !"
+        time-limit: 600
+        objectives:
+          - {type: break, target: "#ores", amount: 48, where: {servers: [ressource]}}

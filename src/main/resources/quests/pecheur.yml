@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 2
+version: 3
 defaults:
   category: job
   tags: [pecheur]
@@ -362,3 +362,33 @@ quests:
       - {type: fish, target: ANY, amount: 40, where: {biomes: [frozen_ocean, deep_frozen_ocean, cold_ocean]}}
       - {type: fish, target: ANY, amount: 40, where: {biomes: [warm_ocean, lukewarm_ocean]}}
       - {type: deliver, target: NAUTILUS_SHELL, amount: 2}
+
+  # ---------- Monde ressource (camp de base, lieux, événements) ----------
+  pecheur-ressource-large:
+    name: "<primary>La pêche au large"
+    meta: {kind: daily, tier: normal, reward: 220}
+    objectives:
+      - {type: fish, target: ANY, amount: 30, where: {servers: [ressource]}}
+  pecheur-ressource-ocean:
+    name: "<light_purple>Le monde océan"
+    description: [ "<info>Quand le monde ressource est un océan, les récifs regorgent de poissons." ]
+    reputation: 2
+    rewards: [ "action: eterresource:addtime 10" ]
+    meta: {kind: rare, tier: hard, reward: 460}
+    stages:
+      - id: partir
+        text: "<info>Pars sur un monde ressource océan"
+        objectives:
+          - {type: signal, key: eterresource:arrive, match: {theme: ocean}, amount: 1, scale: false, text: "Arriver sur un monde océan"}
+      - id: pecher
+        text: "<info>Pêche dans les récifs"
+        objectives:
+          - {type: fish, target: TROPICAL_FISH, amount: 8, where: {servers: [ressource]}}
+          - {type: fish, target: ANY, amount: 40, where: {servers: [ressource]}}
+  pecheur-ressource-tresor:
+    name: "<light_purple>Le trésor englouti"
+    reputation: 3
+    rewards: [ "action: eterresource:addtime 15" ]
+    meta: {kind: rare, tier: hard, reward: 500}
+    objectives:
+      - {type: signal, key: eterresource:treasure, amount: 1, scale: false, text: "Trouver le trésor caché d'un monde ressource"}

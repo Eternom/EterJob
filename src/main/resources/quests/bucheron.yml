@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 1
+version: 2
 defaults:
   category: job
   tags: [bucheron]
@@ -275,3 +275,45 @@ quests:
       - id: charpente
         text: "<info>Livre la charpente"
         objectives: [ "DELIVER:OAK_STAIRS:64", "DELIVER:SPRUCE_SLAB:64", "DELIVER:OAK_DOOR:8" ]
+
+  # ---------- Monde ressource (camp de base, lieux, événements) ----------
+  bucheron-ressource-coupe:
+    name: "<primary>La coupe d'expédition"
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: break, target: "#logs", amount: 96, where: {servers: [ressource]}}
+  bucheron-ressource-bosquet:
+    name: "<light_purple>Le bosquet rare"
+    description: [ "<info>Un botaniste cherche le bois d'un bosquet perdu." ]
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 340}
+    stages:
+      - id: trouver
+        text: "<info>Trouve un bosquet rare (carnet d'expédition, au camp)"
+        objectives:
+          - {type: signal, key: eterresource:discover, match: {place: grove}, amount: 1, scale: false, text: "Découvrir un bosquet rare"}
+      - id: couper
+        text: "<info>Rapporte son bois"
+        objectives:
+          - {type: break, target: "#logs", amount: 32, where: {servers: [ressource]}}
+  bucheron-ressource-foret-doree:
+    name: "<light_purple>La forêt dorée"
+    reputation: 2
+    rewards: [ "action: eterresource:addtime 10" ]
+    meta: {kind: rare, tier: hard, reward: 450}
+    stages:
+      - id: annonce
+        text: "<info>Attends une forêt dorée en monde ressource"
+        objectives:
+          - {type: signal, key: eterresource:event, match: {event: golden-forest}, amount: 1, scale: false, text: "Vivre une forêt dorée"}
+      - id: couper
+        text: "<info>Coupe pendant qu'elle brille !"
+        time-limit: 600
+        objectives:
+          - {type: break, target: "#logs", amount: 80, where: {servers: [ressource]}}
+  bucheron-ressource-defi:
+    name: "<light_purple>Le défi du bûcheron"
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 320}
+    objectives:
+      - {type: signal, key: eterresource:challenge, amount: 1, scale: false, text: "Réussir un défi chronométré en monde ressource"}
