@@ -11,7 +11,7 @@
 #   objectives (une étape) ou stages (plusieurs : id, text, objectives, turn-in, say, time-limit, branches...)
 # Objectif : "TYPE:CIBLE:QUANTITÉ" ou {type, target, amount, where, optional, scale, text}
 #   break harvest kill fish craft smelt breed explore enchant trade : actions du jeu (cible, ANY, ou un groupe
-#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: fermier) ;
+#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: farmer) ;
 #   signal : ce que fait le village (eterhub:harvest {crop, quality, zone}, eterhub:fish {fish, rarity, grams}...)
 #   where : {time: day|night, weather: rain|thunder|clear, biomes: [...], dimension: nether, min-y, max-y}
 #   optional: true -> objectif bonus (pas nécessaire) ; scale: false -> la quantité ne grandit pas avec le rang
@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 1
+version: 2
 defaults:
   category: job
   tags: [pecheur]
@@ -207,83 +207,83 @@ quests:
   pecheur-village-friture:
     name: "<aqua>La friture de Gaspard"
     description: [ "<info>Le poissonnier du Lac prépare une grande friture pour la fête." ]
-    requires: [ "reputation eternpc:poissonnier 10" ]
+    requires: [ "reputation eternpc:fishing 10" ]
     reputation: 2
     meta: {kind: daily, tier: normal, reward: 230}
     stages:
       - id: rencontre
         text: "<info>Va voir <accent>Gaspard</accent>, le poissonnier du Lac (lobby)"
-        objectives: [ {type: talk, npc: poissonnier} ]
+        objectives: [ {type: talk, npc: fishing} ]
         say: [ "Une friture pour tout le village, rien que ça !", "Rapporte-moi des gardons et des perches du Lac, ce sont les meilleurs pour ça." ]
       - id: peche
         text: "<info>Pêche des petits poissons au Lac"
         objectives:
           - {type: signal, key: eterhub:fish, match: {fish: [gardon, perche]}, amount: 10, text: "Gardons ou perches du Lac"}
-        turn-in: [ npc:poissonnier ]
+        turn-in: [ npc:fishing ]
         say: [ "Ça sent déjà bon ! Reviens ce soir, je t'en garde une assiette, {player}." ]
   pecheur-village-gros-poisson:
     name: "<aqua>Le gros poisson"
     description: [ "<info>Gaspard parie qu'on ne sortira jamais un poisson de plus de trois kilos." ]
-    requires: [ "reputation eternpc:poissonnier 15" ]
+    requires: [ "reputation eternpc:fishing 15" ]
     reputation: 3
     meta: {kind: rare, tier: normal, reward: 330}
     stages:
       - id: pari
         text: "<info>Va relever le pari de <accent>Gaspard</accent>"
-        objectives: [ {type: talk, npc: poissonnier} ]
+        objectives: [ {type: talk, npc: fishing} ]
         say: [ "Trois kilos ! Personne n'y arrive. Prouve-moi le contraire." ]
       - id: peche
         text: "<info>Pêche au Lac un poisson de plus de 3 kg"
         objectives:
           - {type: signal, key: eterhub:fish, match: {grams: ">=3000"}, amount: 1, scale: false, text: "Un poisson de plus de 3 kg"}
           - {type: signal, key: eterhub:fish, match: {grams: ">=8000"}, amount: 1, optional: true, scale: false, text: "Un monstre de plus de 8 kg"}
-        turn-in: [ npc:poissonnier ]
+        turn-in: [ npc:fishing ]
         say: [ "Par ma barbe... Tu as gagné, {player}. La tournée est pour moi !" ]
   pecheur-village-truites:
     name: "<aqua>Truites et sandres"
-    requires: [ "reputation eternpc:poissonnier 15" ]
+    requires: [ "reputation eternpc:fishing 15" ]
     reputation: 2
     meta: {kind: daily, tier: hard, reward: 320}
     stages:
       - id: rencontre
         text: "<info>Va voir <accent>Gaspard</accent> au Lac"
-        objectives: [ {type: talk, npc: poissonnier} ]
+        objectives: [ {type: talk, npc: fishing} ]
         say: [ "Un restaurant de la ville me commande des poissons fins. Truites et sandres, rien d'autre !" ]
       - id: peche
         text: "<info>Pêche des truites et des sandres au Lac"
         objectives:
           - {type: signal, key: eterhub:fish, match: {fish: truite}, amount: 3, text: "Truites du Lac"}
           - {type: signal, key: eterhub:fish, match: {fish: sandre}, amount: 2, text: "Sandres du Lac"}
-        turn-in: [ npc:poissonnier ]
+        turn-in: [ npc:fishing ]
         say: [ "Superbes ! Le chef va être ravi." ]
   pecheur-village-nuit:
     name: "<aqua>La lueur sous l'eau"
     description: [ "<info>On raconte qu'une anguille spectrale hante le Lac..." ]
-    requires: [ "reputation eternpc:poissonnier 25" ]
+    requires: [ "reputation eternpc:fishing 25" ]
     reputation: 4
     meta: {kind: rare, tier: hard, reward: 480}
     stages:
       - id: legende
         text: "<info>Écoute la légende de <accent>Gaspard</accent>"
-        objectives: [ {type: talk, npc: poissonnier} ]
+        objectives: [ {type: talk, npc: fishing} ]
         say: [ "Mon grand-père l'a vue, une seule fois. Une lueur verte sous l'eau...", "Pêche longtemps, et ouvre l'œil." ]
       - id: guet
         text: "<info>Pêche au Lac en guettant la lueur"
         objectives:
           - {type: signal, key: eterhub:fish, amount: 20, text: "Prises au Lac"}
           - {type: signal, key: eterhub:fish, match: {fish: anguille-spectrale}, amount: 1, optional: true, scale: false, text: "L'anguille spectrale"}
-        turn-in: [ npc:poissonnier ]
+        turn-in: [ npc:fishing ]
         say: [ "Alors, tu l'as vue ? ... Non ? Ce n'est que partie remise." ]
   pecheur-village-legende:
     name: "<gold>La carpe dorée"
     description: [ "<info>Le trophée de toute une vie de pêcheur." ]
-    requires: [ "reputation eternpc:poissonnier 40" ]
+    requires: [ "reputation eternpc:fishing 40" ]
     reputation: 6
     meta: {kind: rare, tier: hard, reward: 700, min-rank: artisan}
     stages:
       - id: rencontre
         text: "<info>Va voir <accent>Gaspard</accent> au Lac"
-        objectives: [ {type: talk, npc: poissonnier} ]
+        objectives: [ {type: talk, npc: fishing} ]
         say: [ "Tu es devenu un vrai pêcheur, {player}. Il est temps de viser la légende." ]
       - id: rares
         text: "<info>Pêche des poissons rares au Lac"
@@ -293,7 +293,7 @@ quests:
         text: "<info>Pêche une prise légendaire au Lac"
         objectives:
           - {type: signal, key: eterhub:fish, match: {rarity: legendary}, amount: 1, scale: false, text: "Une prise légendaire"}
-        turn-in: [ npc:poissonnier ]
+        turn-in: [ npc:fishing ]
         say: [ "Je n'y croyais plus... Ton nom sera gravé sur le ponton, {player} !" ]
 
   # ---------- Quêtes rares spéciales ----------

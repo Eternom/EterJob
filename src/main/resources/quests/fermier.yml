@@ -11,7 +11,7 @@
 #   objectives (une étape) ou stages (plusieurs : id, text, objectives, turn-in, say, time-limit, branches...)
 # Objectif : "TYPE:CIBLE:QUANTITÉ" ou {type, target, amount, where, optional, scale, text}
 #   break harvest kill fish craft smelt breed explore enchant trade : actions du jeu (cible, ANY, ou un groupe
-#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: fermier) ;
+#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: farmer) ;
 #   signal : ce que fait le village (eterhub:harvest {crop, quality, zone}, eterhub:fish {fish, rarity, grams}...)
 #   where : {time: day|night, weather: rain|thunder|clear, biomes: [...], dimension: nether, min-y, max-y}
 #   optional: true -> objectif bonus (pas nécessaire) ; scale: false -> la quantité ne grandit pas avec le rang
@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 1
+version: 2
 defaults:
   category: job
   tags: [fermier]
@@ -204,19 +204,19 @@ quests:
   fermier-village-commande:
     name: "<gold>La commande de Mathurin"
     description: [ "<info>Le fermier du village manque de bras pour ses Champs." ]
-    requires: [ "reputation eternpc:fermier 10" ]
+    requires: [ "reputation eternpc:farmer 10" ]
     reputation: 2
     meta: {kind: daily, tier: normal, reward: 230}
     stages:
       - id: rencontre
         text: "<info>Va voir <accent>Mathurin</accent>, le fermier du village (lobby)"
-        objectives: [ {type: talk, npc: fermier} ]
+        objectives: [ {type: talk, npc: farmer} ]
         say: [ "Ah, c'est la guilde qui t'envoie ? Parfait !", "Il me faut du blé de mes Champs, et vite : le moulin attend." ]
       - id: recolte
         text: "<info>Récolte le blé des Champs du village"
         objectives:
           - {type: signal, key: eterhub:harvest, match: {crop: wheat}, amount: 48, text: "Blé des Champs du village"}
-        turn-in: [ npc:fermier ]
+        turn-in: [ npc:farmer ]
         say: [ "Magnifique ! Le moulin va tourner toute la nuit. Merci, {player} !" ]
   fermier-village-vendanges:
     name: "<dark_purple>Les vendanges d'Aurèle"
@@ -239,13 +239,13 @@ quests:
   fermier-village-tournee:
     name: "<gold>La tournée des champs"
     description: [ "<info>Mathurin veut savoir comment se porte chaque parcelle de blé." ]
-    requires: [ "reputation eternpc:fermier 15" ]
+    requires: [ "reputation eternpc:farmer 15" ]
     reputation: 3
     meta: {kind: rare, tier: normal, reward: 320}
     stages:
       - id: rencontre
         text: "<info>Va voir <accent>Mathurin</accent> au village"
-        objectives: [ {type: talk, npc: fermier} ]
+        objectives: [ {type: talk, npc: farmer} ]
         say: [ "Fais le tour des trois champs de blé : l'ouest, le sud et l'est.", "Rapporte-moi un peu de chacun, que je compare." ]
       - id: tournee
         text: "<info>Récolte du blé dans chacun des trois champs"
@@ -253,18 +253,18 @@ quests:
           - {type: signal, key: eterhub:harvest, match: {crop: wheat, zone: champs-ble-ouest}, amount: 16, text: "Blé du champ de l'ouest"}
           - {type: signal, key: eterhub:harvest, match: {crop: wheat, zone: champs-ble-sud}, amount: 16, text: "Blé du champ du sud"}
           - {type: signal, key: eterhub:harvest, match: {crop: wheat, zone: champs-ble-est}, amount: 16, text: "Blé du champ de l'est"}
-        turn-in: [ npc:fermier ]
+        turn-in: [ npc:farmer ]
         say: [ "Le champ de l'est a soif, je le savais... Merci pour ton aide, {player}." ]
   fermier-village-belles-recoltes:
     name: "<gold>Le concours de Mathurin"
     description: [ "<info>La foire approche : Mathurin veut présenter ses plus beaux légumes." ]
-    requires: [ "reputation eternpc:fermier 25" ]
+    requires: [ "reputation eternpc:farmer 25" ]
     reputation: 4
     meta: {kind: rare, tier: hard, reward: 450}
     stages:
       - id: rencontre
         text: "<info>Va voir <accent>Mathurin</accent> au village"
-        objectives: [ {type: talk, npc: fermier} ]
+        objectives: [ {type: talk, npc: farmer} ]
         say: [ "Pour la foire, il me faut ce qu'il y a de plus beau.", "Des carottes et des patates de belle qualité. Une dorée, et je te serais éternellement reconnaissant !" ]
       - id: selection
         text: "<info>Récolte des légumes de belle qualité"
@@ -272,25 +272,25 @@ quests:
           - {type: signal, key: eterhub:harvest, match: {crop: carrot, quality: [fine, golden]}, amount: 6, text: "Belles carottes"}
           - {type: signal, key: eterhub:harvest, match: {crop: potato, quality: [fine, golden]}, amount: 6, text: "Belles patates"}
           - {type: signal, key: eterhub:harvest, match: {quality: golden}, amount: 1, optional: true, scale: false, text: "Une récolte dorée"}
-        turn-in: [ npc:fermier ]
+        turn-in: [ npc:farmer ]
         say: [ "Le premier prix est à nous, j'en suis sûr !" ]
   fermier-village-course:
     name: "<gold>Avant l'orage"
     description: [ "<info>Un orage arrive sur le village : tout doit être rentré à temps !" ]
-    requires: [ "reputation eternpc:fermier 20" ]
+    requires: [ "reputation eternpc:farmer 20" ]
     reputation: 3
     meta: {kind: rare, tier: hard, reward: 420}
     stages:
       - id: alerte
         text: "<info>Va voir <accent>Mathurin</accent> au village"
-        objectives: [ {type: talk, npc: fermier} ]
+        objectives: [ {type: talk, npc: farmer} ]
         say: [ "Vite, l'orage arrive ! Tu as cinq minutes pour rentrer ce que tu peux !" ]
       - id: course
         text: "<info>Récolte un maximum dans les Champs : 5 minutes !"
         time-limit: 300
         objectives:
           - {type: signal, key: eterhub:harvest, amount: 40, text: "Récoltes rentrées à temps"}
-        turn-in: [ npc:fermier ]
+        turn-in: [ npc:farmer ]
         say: [ "Ouf ! Tout est à l'abri. Tu cours plus vite que mon chien, {player} !" ]
 
   # ---------- Quêtes rares spéciales ----------

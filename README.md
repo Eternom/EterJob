@@ -54,8 +54,8 @@ sous Y 0, dans un biome, dans le Nether), un **temps limité**, des **conditions
 d'un PNJ). 248 quêtes au départ (environ 50 par métier).
 
 **Quêtes du village** (fermier, pêcheur) : une quête de métier peut se faire au lobby, chez un PNJ du village
-(Mathurin le Fermier `eternpc:fermier`, Aurèle le Vigneron `eternpc:vigneron`, Gaspard le Poissonnier
-`eternpc:poissonnier`) : lui parler, récolter dans les Champs ou pêcher au Lac (signaux d'EterHub), puis lui rendre la
+(Mathurin le Fermier `eternpc:farmer`, Aurèle le Vigneron `eternpc:vigneron`, Gaspard le Poissonnier
+`eternpc:fishing`) : lui parler, récolter dans les Champs ou pêcher au Lac (signaux d'EterHub), puis lui rendre la
 quête. Les récoltes faites pour une quête vont au panier de la commande : ni objet, ni plafond du jour des Champs.
 Elles demandent de la réputation auprès du PNJ (réputation d'EterLib × ratio du PNJ, `/eternpc reputation`).
 
