@@ -77,7 +77,7 @@ ce qui ne tient pas va dans la **boîte de récupération** (`eterjob_box`, jama
 
 | Commande | Rôle | Permission |
 |---|---|---|
-| `/job` (`jobs`, `metier`) `[guilde \| avantages \| historique \| top <métier> \| messages \| <joueur>]` | Joueurs | `eterjob.use` (tous) |
+| `/job` (`jobs`) `[guild \| perks \| history \| top <métier> \| messages \| <joueur>]` | Joueurs | `eterjob.use` (tous) |
 | `/eterjob player · setjob · cooldown · clearquests · reroll · remove · setlevel · addxp · setstory` | Un joueur | `eterjob.admin` |
 | `/eterjob quests <métier> · reload · stats [jours] · event <métier\|all> <×> <durée> \| stop` | Réglages, évènements | `eterjob.admin` |
 

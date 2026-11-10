@@ -13,8 +13,8 @@ softdepend: [EterNpc, EterClan, EterSuccess]
 commands:
   job:
     description: Tes quêtes de métier, la guilde, les avantages, l'historique, le classement.
-    usage: /job [guilde|avantages|historique|top <métier>|messages|<joueur>]
-    aliases: [jobs, metier, metiers]
+    usage: /job [guild|perks|history|top <métier>|messages|<joueur>]
+    aliases: [jobs]
     permission: eterjob.use
   eterjob:
     description: Gestion des métiers (staff).

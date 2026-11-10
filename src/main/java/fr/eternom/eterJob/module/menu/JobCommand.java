@@ -16,13 +16,13 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * /job [guilde | avantages | historique | top <métier> | messages | <joueur>] : ses quêtes (à distance : les quêtes
+ * /job [guild | perks | history | top <métier> | messages | <joueur>] : ses quêtes (à distance : les quêtes
  * sans objet à livrer se valident d'ici), le chef de guilde, les avantages, l'historique, le classement d'un métier,
  * couper les messages de progression, le profil métier d'un autre joueur.
  */
 public class JobCommand implements TabExecutor {
 
-    private static final List<String> SUBS = List.of("guilde", "avantages", "historique", "top", "messages");
+    private static final List<String> SUBS = List.of("guild", "perks", "history", "top", "messages");
 
     private final JobService service;
     private final JobGui gui;
@@ -43,9 +43,9 @@ public class JobCommand implements TabExecutor {
         String sub = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "";
         switch (sub) {
             case "" -> gui.openQuests(player, null, true);
-            case "guilde", "guild" -> gui.openGuild(player);
-            case "avantages", "perks" -> gui.openPerks(player, args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : null);
-            case "historique", "history" -> gui.openHistory(player);
+            case "guild" -> gui.openGuild(player);
+            case "perks" -> gui.openPerks(player, args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : null);
+            case "history" -> gui.openHistory(player);
             case "top" -> {
                 String job = args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : service.progress().jobOf(player.getUniqueId());
                 if (job == null || !service.settings().exists(job)) {
@@ -89,7 +89,7 @@ public class JobCommand implements TabExecutor {
             return java.util.stream.Stream.concat(SUBS.stream().filter(sub -> sub.startsWith(args[0].toLowerCase(Locale.ROOT))),
                     names.stream()).toList();
         }
-        if (args.length == 2 && List.of("top", "avantages").contains(args[0].toLowerCase(Locale.ROOT))) {
+        if (args.length == 2 && List.of("top", "perks").contains(args[0].toLowerCase(Locale.ROOT))) {
             return service.settings().icons().keySet().stream().filter(job -> job.startsWith(args[1].toLowerCase(Locale.ROOT))).toList();
         }
         return List.of();
