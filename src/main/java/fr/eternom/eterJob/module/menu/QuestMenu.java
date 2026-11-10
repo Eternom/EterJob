@@ -1,12 +1,9 @@
 package fr.eternom.eterJob.module.menu;
 
+import fr.eternom.eterJob.module.job.JobQuests;
 import fr.eternom.eterJob.module.job.JobService;
 import fr.eternom.eterJob.module.job.JobService.Board;
 import fr.eternom.eterJob.module.job.Levels;
-import fr.eternom.eterJob.module.job.Objective;
-import fr.eternom.eterJob.module.job.ObjectiveTargets;
-import fr.eternom.eterJob.module.job.Quest;
-import fr.eternom.eterJob.module.job.QuestTexts;
 import fr.eternom.eterJob.module.job.Rank;
 import fr.eternom.eterLib.helper.economy.Money;
 import fr.eternom.eterLib.helper.gui.Frame;
@@ -14,6 +11,9 @@ import fr.eternom.eterLib.helper.gui.Items;
 import fr.eternom.eterLib.helper.gui.Menu;
 import fr.eternom.eterLib.helper.gui.Sounds;
 import fr.eternom.eterLib.helper.message.Messages;
+import fr.eternom.eterQuest.api.QuestApi;
+import fr.eternom.eterQuest.api.QuestInstance;
+import fr.eternom.eterQuest.model.Quest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -40,12 +40,14 @@ import java.util.Map;
  *  ▣ · · · · · · · ▣
  *  ⇊ ☰ ✧ ⚑ « ✉ ▤ ♪ ▣     tout valider · historique · avantages · guilde · retour · boîte · sidebar · messages
  * </pre>
- * Sur une quête : clic = valider, clic droit = la suivre dans la sidebar, Maj + clic = la changer (une par jour).
+ * Sur une quête : clic = la rendre (son étape en cours), clic droit = la suivre dans la sidebar, Maj + clic = la changer
+ * (une par jour). Les quêtes sont celles d'EterQuest : une quête à étapes (ex : chez un PNJ du village) montre l'étape
+ * en cours.
  */
 class QuestMenu implements Menu {
 
-    private static final int INFO = 4;
     private static final List<Integer> DAILY_SLOTS = List.of(20, 22, 24);
+    private static final int INFO = 4;
     private static final int WEEKLY = 29;
     private static final int BONUS = 31;
     private static final int STORY = 33;
@@ -60,19 +62,19 @@ class QuestMenu implements Menu {
 
     private final JobGui gui;
     private final JobService service;
+    private final QuestApi quests;
     private final Messages messages;
-    private final QuestTexts texts;
     private final Player viewer;
     private final Board board;
     private final boolean remote;
     private final Inventory inventory;
-    private final Map<Integer, Quest> questAt = new HashMap<>();
+    private final Map<Integer, QuestInstance> questAt = new HashMap<>();
 
     QuestMenu(JobGui gui, Player viewer, Board board, boolean remote) {
         this.gui = gui;
         this.service = gui.service();
+        this.quests = service.quests();
         this.messages = gui.messages();
-        this.texts = service.texts();
         this.viewer = viewer;
         this.board = board;
         this.remote = remote;
@@ -80,27 +82,33 @@ class QuestMenu implements Menu {
         render();
     }
 
+    /** La quête telle que ce serveur la connaît (progression à jour), sinon celle du tableau. */
+    private QuestInstance current(QuestInstance shown) {
+        return quests.live(viewer, JobQuests.OWNER).stream()
+                .filter(q -> q.slot().equals(shown.slot()) && q.token() == shown.token()).findFirst().orElse(shown);
+    }
+
     @Override
     public void onClick(Player player, int slot, ClickType click) {
-        Quest quest = questAt.get(slot);
-        if (quest != null) {
-            Quest current = service.progress().current(player.getUniqueId(), quest);
-            if (current.done()) {
+        QuestInstance shown = questAt.get(slot);
+        if (shown != null) {
+            QuestInstance quest = current(shown);
+            if (quest.done()) {
                 Sounds.refuse(player);
             } else if (click.isShiftClick()) {
-                if (!current.isDaily() || !board.canReroll()) {
+                if (!JobQuests.isDaily(quest) || !board.canReroll()) {
                     Sounds.refuse(player);
                     return;
                 }
                 Sounds.click(player);
-                gui.confirmReroll(player, board, current, remote);
+                gui.confirmReroll(player, board, quest, remote);
             } else if (click.isRightClick()) {
                 Sounds.click(player);
-                service.progress().toggleTrack(player, current.slot());
+                quests.toggleTrack(player, JobQuests.OWNER, quest.slot());
                 gui.openQuests(player, board.job(), remote);
             } else {
                 Sounds.click(player);
-                service.deliver(player, current, remote, () -> gui.openQuests(player, board.job(), remote));
+                service.deliver(player, quest, remote, () -> gui.openQuests(player, board.job(), remote));
             }
             return;
         }
@@ -125,11 +133,11 @@ class QuestMenu implements Menu {
             }
             case SIDEBAR -> {
                 Sounds.click(player);
-                service.progress().toggleTrack(player, -2);
+                quests.toggleTrack(player, null, null);
             }
             case QUIET -> {
                 Sounds.click(player);
-                service.progress().toggleQuiet(player);
+                quests.toggleQuiet(player);
                 gui.openQuests(player, board.job(), remote);
             }
             default -> {
@@ -137,12 +145,11 @@ class QuestMenu implements Menu {
         }
     }
 
-    /** Valide l'une après l'autre les quêtes prêtes (à distance : seulement celles sans objet à livrer). */
+    /** Rend l'une après l'autre les quêtes prêtes à rendre ici (à distance : seulement celles qui le permettent). */
     private void deliverAll(Player player) {
-        List<Quest> ready = questAt.values().stream()
-                .map(quest -> service.progress().current(player.getUniqueId(), quest))
-                .filter(quest -> QuestTexts.ready(player, quest) && (!remote || quest.items().isEmpty()))
-                .sorted((a, b) -> Integer.compare(a.slot(), b.slot())).toList();
+        String place = remote ? "remote" : "giver";
+        List<QuestInstance> ready = questAt.values().stream().map(this::current)
+                .filter(quest -> quests.ready(player, quest) && accepts(quest, place)).toList();
         if (ready.isEmpty()) {
             Sounds.refuse(player);
             messages.send(player, "quest.none-ready");
@@ -153,7 +160,13 @@ class QuestMenu implements Menu {
         deliverNext(player, ready, 0);
     }
 
-    private void deliverNext(Player player, List<Quest> ready, int index) {
+    private boolean accepts(QuestInstance quest, String place) {
+        Quest definition = quests.quest(quest.quest()).orElse(null);
+        return definition != null && definition.stage(quest.stage()).accepts(place)
+                && !(place.equals("remote") && definition.stage(quest.stage()).hasDeliveries());
+    }
+
+    private void deliverNext(Player player, List<QuestInstance> ready, int index) {
         if (index >= ready.size()) {
             gui.openQuests(player, board.job(), remote);
             return;
@@ -169,20 +182,20 @@ class QuestMenu implements Menu {
     private void render() {
         Frame.draw(inventory, Material.ORANGE_STAINED_GLASS_PANE);
         inventory.setItem(INFO, info());
-        List<Quest> daily = board.quests().stream().filter(Quest::isDaily).toList();
-        for (Quest quest : daily) {
-            if (quest.slot() < DAILY_SLOTS.size()) {
-                place(DAILY_SLOTS.get(quest.slot()), quest);
+        for (QuestInstance quest : JobQuests.dailies(board.quests())) {
+            int index = JobQuests.dailyIndex(quest);
+            if (index >= 0 && index < DAILY_SLOTS.size()) {
+                place(DAILY_SLOTS.get(index), quest);
             }
         }
-        board.quests().stream().filter(Quest::isWeekly).findFirst().ifPresentOrElse(quest -> place(WEEKLY, quest),
+        board.quests().stream().filter(JobQuests::isWeekly).findFirst().ifPresentOrElse(quest -> place(WEEKLY, quest),
                 () -> inventory.setItem(WEEKLY, Items.item(Material.GRAY_DYE, text("quest.weekly.none"), List.of())));
-        board.quests().stream().filter(Quest::isBonus).findFirst().ifPresentOrElse(quest -> place(BONUS, quest), () -> {
+        board.quests().stream().filter(JobQuests::isBonus).findFirst().ifPresentOrElse(quest -> place(BONUS, quest), () -> {
             if (service.settings().bonusQuest()) {
                 inventory.setItem(BONUS, Items.item(Material.GRAY_DYE, text("quest.bonus.locked"), List.of(text("quest.bonus.locked-lore"))));
             }
         });
-        board.quests().stream().filter(Quest::isStory).findFirst().ifPresentOrElse(quest -> place(STORY, quest),
+        board.quests().stream().filter(JobQuests::isStory).findFirst().ifPresentOrElse(quest -> place(STORY, quest),
                 () -> inventory.setItem(STORY, Items.item(Material.BOOK, text("quest.story.none"), List.of(text("quest.story.none-lore")))));
         inventory.setItem(DELIVER_ALL, Items.item(Material.HOPPER, text("quest.menu.deliver-all"), List.of(text(remote
                 ? "quest.menu.deliver-all-remote" : "quest.menu.deliver-all-lore"))));
@@ -193,7 +206,7 @@ class QuestMenu implements Menu {
         inventory.setItem(BOX, Items.item(board.boxCount() > 0 ? Material.CHEST_MINECART : Material.MINECART, text("quest.menu.box"),
                 List.of(text("quest.menu.box-lore", "count", String.valueOf(board.boxCount()))), board.boxCount() > 0));
         inventory.setItem(SIDEBAR, Items.item(Material.MAP, text("quest.menu.sidebar"), List.of(text("quest.menu.sidebar-lore"))));
-        boolean quiet = service.progress().isQuiet(viewer.getUniqueId());
+        boolean quiet = quests.isQuiet(viewer);
         inventory.setItem(QUIET, Items.item(quiet ? Material.GRAY_DYE : Material.BELL, text("quest.menu.quiet"),
                 List.of(text(quiet ? "quest.menu.quiet-on" : "quest.menu.quiet-off"))));
     }
@@ -217,8 +230,8 @@ class QuestMenu implements Menu {
             lore.add(text("quest.menu.next-rank", "rank", service.rankName(viewer, next), "level", String.valueOf(levels.levelOf(next))));
         }
         lore.add(text("quest.menu.completed", "count", String.valueOf(board.level().completed())));
-        List<Quest> daily = board.quests().stream().filter(Quest::isDaily).toList();
-        lore.add(text("quest.menu.progress", "done", String.valueOf(daily.stream().filter(Quest::done).count()),
+        List<QuestInstance> daily = JobQuests.dailies(board.quests());
+        lore.add(text("quest.menu.progress", "done", String.valueOf(daily.stream().filter(QuestInstance::done).count()),
                 "total", String.valueOf(daily.size())));
         if (board.streak() > 0) {
             lore.add(text("quest.menu.streak", "days", String.valueOf(board.streak())));
@@ -244,38 +257,39 @@ class QuestMenu implements Menu {
                 "job", service.jobName(viewer, board.job())), lore);
     }
 
-    private void place(int slot, Quest shown) {
-        Quest quest = service.progress().current(viewer.getUniqueId(), shown);
+    private void place(int slot, QuestInstance shown) {
+        QuestInstance quest = current(shown);
         questAt.put(slot, quest);
-        boolean ready = QuestTexts.ready(viewer, quest);
+        Quest definition = quests.quest(quest.quest()).orElse(null);
+        boolean ready = quests.ready(viewer, quest);
         List<Component> lore = new ArrayList<>();
-        for (Objective objective : quest.objectives()) {
-            Component line = quest.done() ? texts.label(viewer, objective)
-                    : texts.objective(viewer, objective, QuestTexts.have(viewer, quest, objective));
-            lore.add(text("quest.item.objective").append(line));
+        if (definition != null) {
+            definition.description().forEach(line -> lore.add(messages.render(line, TagResolver.empty())));
         }
-        lore.add(text("quest.item.reward", "reward", Money.format(quest.reward()), "xp", String.valueOf(quest.xp())));
+        lore.addAll(quests.lore(viewer, quest));
+        lore.add(text("quest.item.reward", "reward", Money.format(JobQuests.reward(quest)), "xp", String.valueOf(JobQuests.xp(quest))));
         if (quest.done()) {
             lore.add(text("quest.item.done"));
         } else {
-            quest.actions().stream().findFirst().ifPresent(action -> lore.add(text("quest.hint." + action.kind().id())));
             if (quest.tracked()) {
                 lore.add(text("quest.item.tracked"));
             }
             lore.add(Component.empty());
-            if (remote && !quest.items().isEmpty()) {
-                lore.add(text("quest.item.deliver-npc"));
+            boolean giverHere = definition != null && accepts(quest, remote ? "remote" : "giver");
+            if (!giverHere) {
+                lore.add(text(remote && definition != null && definition.stage(quest.stage()).hasDeliveries()
+                        ? "quest.item.deliver-npc" : "quest.item.elsewhere"));
             } else {
                 lore.add(text(ready ? "quest.item.deliver" : "quest.item.gather"));
             }
             lore.add(text(quest.tracked() ? "quest.item.untrack" : "quest.item.track"));
-            if (quest.isDaily() && board.canReroll()) {
+            if (JobQuests.isDaily(quest) && board.canReroll()) {
                 lore.add(text("quest.item.reroll", "price", board.rerollFree() || service.settings().rerollCost() <= 0
                         ? messages.plain(viewer, "quest.reroll.free") : Money.format(service.settings().rerollCost())));
             }
         }
-        Material icon = quest.done() ? Material.LIME_DYE : ObjectiveTargets.icon(quest.objectives().getFirst());
-        inventory.setItem(slot, Items.item(icon, texts.name(viewer, quest), lore, ready || quest.tracked() || quest.rare()));
+        Material icon = quest.done() ? Material.LIME_DYE : quests.icon(quest);
+        inventory.setItem(slot, Items.item(icon, quests.name(viewer, quest), lore, ready || quest.tracked() || JobQuests.rare(quest)));
     }
 
     private static Component bar(int done, int total) {

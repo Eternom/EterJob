@@ -6,9 +6,9 @@ api-version: '26.2'
 load: POSTWORLD
 authors: [ NadTum ]
 description: La guilde des métiers (quêtes du jour, de la semaine, histoire, niveaux, rangs, avantages dans le monde ressource).
-depend: [EterLib, EterEconomy]
-# EterNpc : marqueur « ! » au-dessus du donneur de quêtes ; EterClan : pas de progrès sur le terrain d'un autre clan
-softdepend: [EterNpc, EterClan, EterSuccess]
+depend: [EterLib, EterEconomy, EterQuest]
+# EterNpc : marqueur « ! » au-dessus du donneur de quêtes (les quêtes elles-mêmes : EterQuest)
+softdepend: [EterNpc]
 
 commands:
   job:

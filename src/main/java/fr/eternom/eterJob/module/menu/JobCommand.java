@@ -54,7 +54,7 @@ public class JobCommand implements TabExecutor {
                     gui.openRanking(player, job);
                 }
             }
-            case "messages" -> service.progress().toggleQuiet(player);
+            case "messages" -> service.quests().toggleQuiet(player);
             default -> profile(player, args[0]);
         }
         return true;

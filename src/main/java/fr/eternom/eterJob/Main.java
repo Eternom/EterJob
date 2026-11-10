@@ -3,7 +3,7 @@ package fr.eternom.eterJob;
 import fr.eternom.eterJob.api.JobApi;
 import fr.eternom.eterJob.module.admin.AdminCommand;
 import fr.eternom.eterJob.module.job.JobApiService;
-import fr.eternom.eterJob.module.job.JobProgressListener;
+import fr.eternom.eterJob.module.job.JobQuests;
 import fr.eternom.eterJob.module.job.JobRepository;
 import fr.eternom.eterJob.module.job.JobService;
 import fr.eternom.eterJob.module.job.JobSettings;
@@ -16,6 +16,9 @@ import fr.eternom.eterLib.EterLib;
 import fr.eternom.eterLib.helper.cache.NetworkBus;
 import fr.eternom.eterLib.helper.message.Messages;
 import fr.eternom.eterLib.helper.task.Tasks;
+import fr.eternom.eterQuest.api.QuestApi;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.plugin.ServicePriority;
@@ -33,11 +36,12 @@ import java.util.Objects;
  */
 public final class Main extends JavaPlugin {
 
-    private static final String REQUIRED_ETERLIB = "1.22.0";
+    private static final String REQUIRED_ETERLIB = "1.25.0";
     private static final String TABLE_PREFIX = "eterjob_";
 
     private Messages messages;
     private JobService service;
+    private QuestApi quests;
 
     @Override
     public void onEnable() {
@@ -53,9 +57,23 @@ public final class Main extends JavaPlugin {
         }
         EterLib lib = EterLib.get();
         messages = lib.messages(this, "en_us", "fr_fr");
+        quests = QuestApi.get().orElse(null);
+        if (quests == null) {
+            getLogger().severe("EterQuest est nécessaire (le moteur des quêtes). Plugin désactivé.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         JobRepository repository = new JobRepository(lib.database(TABLE_PREFIX));
         JobSettings settings = JobSettings.load(getConfig(), getLogger());
-        service = new JobService(this, repository, settings, QuestCatalog.load(this, settings.icons().keySet()), messages, zone());
+        service = new JobService(this, repository, settings, QuestCatalog.load(this, settings.icons().keySet(), quests), messages, zone(),
+                quests);
+        // Le nom des quêtes de métier sans « name » : « Quête facile », « ✦ Quête rare », « Quête de la semaine »...
+        quests.namer(JobQuests.OWNER, (viewer, quest) -> {
+            String key = JobQuests.isBonus(quest) ? "quest.item.name-bonus" : JobQuests.isWeekly(quest) ? "quest.item.name-weekly"
+                    : JobQuests.isStory(quest) ? "quest.item.name-story" : JobQuests.rare(quest) ? "quest.item.name-rare" : "quest.item.name";
+            return messages.get(viewer, key, TagResolver.resolver(Placeholder.component("tier",
+                    messages.get(viewer, "quest.tier." + JobQuests.tier(quest).id()))));
+        });
         NetworkBus bus = lib.network(this, "eterjob", messages);
         bus.on("reload", data -> reloadLocal());
         bus.on("events", data -> Tasks.async(this, service::refreshEvents, "Évènements des métiers non relus"));
@@ -69,7 +87,8 @@ public final class Main extends JavaPlugin {
         register("eterjob", admin);
 
         getServer().getServicesManager().register(JobApi.class, new JobApiService(service), this, ServicePriority.Normal);
-        getServer().getPluginManager().registerEvents(new JobProgressListener(service), this);
+        getServer().getPluginManager().registerEvents(service, this);
+        getServer().getPluginManager().registerEvents(service.progress(), this);
         // Marqueur « ! » au-dessus du donneur de quêtes : seulement si EterNpc tourne ici
         NpcMarkers markers = getServer().getPluginManager().isPluginEnabled("EterNpc") ? NpcMarkers.create() : null;
         service.progress().start(bus, markers);
@@ -78,17 +97,20 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (service != null) {
-            service.progress().stop();
-        }
+        // Les progrès sont gardés par EterQuest
     }
 
     /** /eterjob reload (ici, ou reçu d'un autre serveur). */
     private void reloadLocal() {
         reloadConfig();
         JobSettings settings = JobSettings.load(getConfig(), getLogger());
-        service.reload(settings, QuestCatalog.load(this, settings.icons().keySet()));
-        getServer().getOnlinePlayers().forEach(service.progress()::reload);
+        Tasks.async(this, () -> {
+            QuestCatalog catalog = QuestCatalog.load(this, settings.icons().keySet(), quests);
+            getServer().getScheduler().runTask(this, () -> {
+                service.reload(settings, catalog);
+                getServer().getOnlinePlayers().forEach(service.progress()::reload);
+            });
+        }, "Quêtes des métiers non relues");
     }
 
     private void register(String name, TabExecutor executor) {

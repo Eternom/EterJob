@@ -34,14 +34,10 @@ public record JobSettings(Map<String, Material> icons, double changeCost, Durati
                           Levels levels, Map<Tier, Integer> tierXp, int bonusXp, int weeklyXp, int storyXp, double rareChance,
                           double rareMultiplier, boolean weekly, Map<Rank, RankReward> rankRewards,
                           Map<String, Map<Rank, JobPerks>> perks, double streakBonus, double streakMax, double weakestBonus,
-                          double dailyMoneyCap, boolean trialSpawners, boolean fishOnlyFish, int minPlaytimeMinutes,
-                          int rateAlertPerMinute, Map<String, String> questGivers, int reminderMinutes, boolean bossBar,
-                          boolean autoTrack, boolean remoteDeliver, boolean announceMaster) {
+                          double dailyMoneyCap, Map<String, String> questGivers, boolean remoteDeliver, boolean announceMaster) {
 
-    /** Emplacements des quêtes d'un joueur : 0 à 2 du jour, 3 la bonus, 4 la semaine, 5 l'histoire. */
-    public static final int BONUS_SLOT = 3;
-    public static final int WEEKLY_SLOT = 4;
-    public static final int STORY_SLOT = 5;
+    /** Quêtes du jour au plus (emplacements daily-0 à daily-2). */
+    public static final int MAX_DAILY = 3;
 
     /** Ce que donne un rang atteint : argent et objets. */
     public record RankReward(double money, List<Map.Entry<Material, Integer>> items) {
@@ -66,7 +62,7 @@ public record JobSettings(Map<String, Material> icons, double changeCost, Durati
             Tier tier = Tier.of(id);
             if (tier == null) {
                 logger.warning("jobs.daily : niveau inconnu « " + id + " » (easy, normal ou hard)");
-            } else if (daily.size() < BONUS_SLOT) {
+            } else if (daily.size() < MAX_DAILY) {
                 daily.add(tier);
             }
         }
@@ -107,7 +103,6 @@ public record JobSettings(Map<String, Material> icons, double changeCost, Durati
         tierXp.put(Tier.NORMAL, xp.getInt("normal", 35));
         tierXp.put(Tier.HARD, xp.getInt("hard", 55));
 
-        ConfigurationSection anti = section(config, "anti-cheat");
         ConfigurationSection display = section(config, "display");
         Map<String, String> givers = new HashMap<>();
         ConfigurationSection giverSection = config.getConfigurationSection("quest-givers");
@@ -135,14 +130,7 @@ public record JobSettings(Map<String, Material> icons, double changeCost, Durati
                 Math.max(0, section(config, "streak").getDouble("max-bonus", 0.2)),
                 Math.max(0, jobs.getDouble("weakest-job-bonus", 0.2)),
                 Math.max(0, jobs.getDouble("daily-money-cap", 0)),
-                anti.getBoolean("count-trial-spawners", false),
-                anti.getBoolean("fish-only-fish", true),
-                Math.max(0, anti.getInt("min-playtime-minutes", 30)),
-                Math.max(0, anti.getInt("break-alert-per-minute", 300)),
                 Map.copyOf(givers),
-                Math.max(0, display.getInt("ready-reminder-minutes", 60)),
-                display.getBoolean("boss-bar", true),
-                display.getBoolean("auto-track", true),
                 jobs.getBoolean("remote-deliver", true),
                 display.getBoolean("announce-master", true));
     }

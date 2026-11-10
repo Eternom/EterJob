@@ -2,8 +2,8 @@ package fr.eternom.eterJob.module.menu;
 
 import fr.eternom.eterJob.module.job.JobRepository;
 import fr.eternom.eterJob.module.job.JobService;
-import fr.eternom.eterJob.module.job.Quest;
 import fr.eternom.eterJob.module.job.QuestCatalog;
+import fr.eternom.eterQuest.api.QuestInstance;
 import fr.eternom.eterJob.module.job.Rank;
 import fr.eternom.eterLib.EterLib;
 import fr.eternom.eterLib.helper.economy.Money;
@@ -129,8 +129,8 @@ public class JobGui {
                 messages.send(player, "story.finished", "job", service.jobName(player, job));
             } else {
                 player.sendMessage(Component.empty());
-                player.sendMessage(messages.render(template.get().title(), TagResolver.empty()));
-                template.get().text().forEach(line -> player.sendMessage(messages.render(line, TagResolver.empty())));
+                player.sendMessage(messages.render(template.get().quest().name(), TagResolver.empty()));
+                template.get().quest().description().forEach(line -> player.sendMessage(messages.render(line, TagResolver.empty())));
                 Rank needed = template.get().story();
                 Rank rank = service.levels().rank(service.levels().level(level.get().xp()));
                 if (!rank.atLeast(needed)) {
@@ -158,7 +158,7 @@ public class JobGui {
                 response -> service.join(player, job, () -> openQuests(player, job, false)), () -> openGuild(player));
     }
 
-    void confirmReroll(Player player, JobService.Board board, Quest quest, boolean remote) {
+    void confirmReroll(Player player, JobService.Board board, QuestInstance quest, boolean remote) {
         player.closeInventory();
         String price = board.rerollFree() || service.settings().rerollCost() <= 0 ? messages.plain(player, "quest.reroll.free")
                 : Money.format(service.settings().rerollCost());

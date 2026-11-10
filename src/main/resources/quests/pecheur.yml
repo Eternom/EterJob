@@ -1,135 +1,364 @@
-# Quêtes du métier « pecheur » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+# Quêtes du métier « pecheur » (EterJob), au format d'EterQuest (le moteur des quêtes, partagé avec tout le réseau).
+# Après un changement : AUGMENTER « version » ci-dessous (la plus haute l'emporte partout), puis /eterjob reload.
 #
-# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
-# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
-# Objectif : "TYPE:CIBLE:QUANTITÉ"
-#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
-#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
-#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
-#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
-#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
-#   TRADE    commercer avec un villageois
-# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
-# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
-#
-# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
-# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
-#          (title, text : le lore, en MiniMessage).
+# Chaque quête : un identifiant définitif (minuscules, chiffres, - et _), puis :
+#   meta     ce que la guilde en fait : kind (daily, weekly, rare, story), tier (easy, normal, hard), reward (Heloks,
+#            × la taille du rang), xp (XP de métier ; sinon celle du niveau, config.yml), min-rank (tirée à partir de ce
+#            rang : apprenti, compagnon, artisan, expert, maitre), rank (story : l'étape de ce rang)
+#   name, description   nom et texte (MiniMessage) ; sans nom : « Quête facile », « ✦ Quête rare »...
+#   requires conditions pour être tirée : « reputation <pnj> <min> » (réputation × ratio du PNJ), « done <quête> »...
+#   reputation          réputation gagnée à la fin (1 par défaut ici)
+#   objectives (une étape) ou stages (plusieurs : id, text, objectives, turn-in, say, time-limit, branches...)
+# Objectif : "TYPE:CIBLE:QUANTITÉ" ou {type, target, amount, where, optional, scale, text}
+#   break harvest kill fish craft smelt breed explore enchant trade : actions du jeu (cible, ANY, ou un groupe
+#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: fermier) ;
+#   signal : ce que fait le village (eterhub:harvest {crop, quality, zone}, eterhub:fish {fish, rarity, grams}...)
+#   where : {time: day|night, weather: rain|thunder|clear, biomes: [...], dimension: nether, min-y, max-y}
+#   optional: true -> objectif bonus (pas nécessaire) ; scale: false -> la quantité ne grandit pas avec le rang
+# turn-in : où se rend la dernière étape. Par défaut ici : au donneur de quêtes (giver), ou à distance (remote, /job)
+#   s'il n'y a pas d'objets à remettre ; npc:<pnj> : chez ce PNJ (ex : au village).
+# Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
+# structure : shulkers, gardien ancien, brutes piglins).
 
-daily:
-  - tier: easy
-    reward: 120
-    objectives: [ "FISH:ANY:15", "ITEM:COD:12" ]
-  - tier: easy
-    reward: 120
-    objectives: [ "FISH:COD:12", "ITEM:COOKED_COD:12" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "FISH:ANY:10", "KILL:SQUID:4", "ITEM:INK_SAC:8" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "FISH:SALMON:6", "ITEM:COOKED_SALMON:6" ]
-  - tier: easy
-    reward: 140
-    objectives: [ "FISH:ANY:12", "ITEM:LILY_PAD:4", "ITEM:KELP:32" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "FISH:ANY:35", "ITEM:COOKED_COD:16", "ITEM:COOKED_SALMON:8" ]
-  - tier: normal
-    reward: 200
+version: 1
+defaults:
+  category: job
+  tags: [pecheur]
+  turn-in: [giver, remote]
+  reputation: 1
+  meta: {job: pecheur}
+
+quests:
+
+  # ---------- Quêtes du jour (une par niveau chaque jour ; jamais celles d'hier) ----------
+  pecheur-jour-01:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "FISH:ANY:15", "DELIVER:COD:12" ]
+  pecheur-jour-02:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "FISH:COD:12", "DELIVER:COOKED_COD:12" ]
+  pecheur-jour-03:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "FISH:ANY:10", "KILL:SQUID:4", "DELIVER:INK_SAC:8" ]
+  pecheur-jour-04:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "FISH:SALMON:6", "DELIVER:COOKED_SALMON:6" ]
+  pecheur-jour-05:
+    meta: {kind: daily, tier: easy, reward: 140}
+    objectives: [ "FISH:ANY:12", "DELIVER:LILY_PAD:4", "DELIVER:KELP:32" ]
+  pecheur-jour-06:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "FISH:ANY:35", "DELIVER:COOKED_COD:16", "DELIVER:COOKED_SALMON:8" ]
+  pecheur-jour-07:
+    meta: {kind: daily, tier: normal, reward: 200}
     objectives: [ "FISH:SALMON:12", "FISH:COD:20" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "KILL:GLOW_SQUID:4", "ITEM:GLOW_INK_SAC:8", "ITEM:SEA_PICKLE:8" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "FISH:ANY:25", "ITEM:KELP:64", "ITEM:DRIED_KELP_BLOCK:8" ]
-  - tier: normal
-    reward: 210
-    objectives: [ "FISH:ANY:30", "KILL:DROWNED:6", "ITEM:COPPER_INGOT:8" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "FISH:PUFFERFISH:3", "FISH:ANY:20", "ITEM:PUFFERFISH:2" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "FISH:ANY:80", "ITEM:COOKED_COD:32", "ITEM:COOKED_SALMON:16" ]
-  - tier: hard
-    reward: 310
-    objectives: [ "FISH:PUFFERFISH:6", "FISH:TROPICAL_FISH:2", "ITEM:PUFFERFISH:2" ]
-  - tier: hard
-    reward: 320
-    objectives: [ "FISH:ANY:60", "ITEM:NAME_TAG:1" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "FISH:ANY:40", "ITEM:NAUTILUS_SHELL:1", "ITEM:COOKED_SALMON:16" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "KILL:GUARDIAN:6", "FISH:ANY:30", "ITEM:PRISMARINE_SHARD:16" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "FISH:SALMON:24", "KILL:SQUID:8", "ITEM:BOOK:6" ]
-  - tier: easy
-    reward: 130
+  pecheur-jour-08:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "KILL:GLOW_SQUID:4", "DELIVER:GLOW_INK_SAC:8", "DELIVER:SEA_PICKLE:8" ]
+  pecheur-jour-09:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "FISH:ANY:25", "DELIVER:KELP:64", "DELIVER:DRIED_KELP_BLOCK:8" ]
+  pecheur-jour-10:
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives: [ "FISH:ANY:30", "KILL:DROWNED:6", "DELIVER:COPPER_INGOT:8" ]
+  pecheur-jour-11:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "FISH:PUFFERFISH:3", "FISH:ANY:20", "DELIVER:PUFFERFISH:2" ]
+  pecheur-jour-12:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "FISH:ANY:80", "DELIVER:COOKED_COD:32", "DELIVER:COOKED_SALMON:16" ]
+  pecheur-jour-13:
+    meta: {kind: daily, tier: hard, reward: 310}
+    objectives: [ "FISH:PUFFERFISH:6", "FISH:TROPICAL_FISH:2", "DELIVER:PUFFERFISH:2" ]
+  pecheur-jour-14:
+    meta: {kind: daily, tier: hard, reward: 320}
+    objectives: [ "FISH:ANY:60", "DELIVER:NAME_TAG:1" ]
+  pecheur-jour-15:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "FISH:ANY:40", "DELIVER:NAUTILUS_SHELL:1", "DELIVER:COOKED_SALMON:16" ]
+  pecheur-jour-16:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "KILL:GUARDIAN:6", "FISH:ANY:30", "DELIVER:PRISMARINE_SHARD:16" ]
+  pecheur-jour-17:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "FISH:SALMON:24", "KILL:SQUID:8", "DELIVER:BOOK:6" ]
+  pecheur-jour-18:
+    meta: {kind: daily, tier: easy, reward: 130}
     objectives: [ "FISH:#fish:15", "SMELT:COOKED_COD:12" ]
-  - tier: normal
-    reward: 200
+  pecheur-jour-19:
+    meta: {kind: daily, tier: normal, reward: 200}
     objectives: [ "FISH:ANY:30", "CRAFT:BUCKET:2" ]
-  - tier: hard
-    reward: 300
-    min-rank: artisan
-    objectives: [ "EXPLORE:WARM_OCEAN:1", "FISH:TROPICAL_FISH:4", "ITEM:SEA_PICKLE:16" ]
+  pecheur-jour-20:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: artisan}
+    objectives: [ "EXPLORE:WARM_OCEAN:1", "FISH:TROPICAL_FISH:4", "DELIVER:SEA_PICKLE:16" ]
 
-weekly:
-  - reward: 900
-    xp: 200
-    objectives: [ "FISH:#fish:300", "ITEM:COOKED_SALMON:64" ]
-  - reward: 950
-    xp: 200
-    objectives: [ "FISH:ANY:250", "KILL:SQUID:30", "ITEM:INK_SAC:32" ]
-  - reward: 1000
-    xp: 220
-    min-rank: artisan
-    objectives: [ "KILL:GUARDIAN:40", "ITEM:PRISMARINE:32", "ITEM:SPONGE:2" ]
+  # ---------- Quêtes de la semaine (longues, bien payées) ----------
+  pecheur-semaine-01:
+    reputation: 3
+    meta: {kind: weekly, reward: 900, xp: 200}
+    objectives: [ "FISH:#fish:300", "DELIVER:COOKED_SALMON:64" ]
+  pecheur-semaine-02:
+    reputation: 3
+    meta: {kind: weekly, reward: 950, xp: 200}
+    objectives: [ "FISH:ANY:250", "KILL:SQUID:30", "DELIVER:INK_SAC:32" ]
+  pecheur-semaine-03:
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 220, min-rank: artisan}
+    objectives: [ "KILL:GUARDIAN:40", "DELIVER:PRISMARINE:32", "DELIVER:SPONGE:2" ]
 
-rare:
-  - tier: hard
-    reward: 450
-    objectives: [ "FISH:ANY:60", "ITEM:NAUTILUS_SHELL:2" ]
-  - tier: normal
-    reward: 300
+  # ---------- Quêtes rares (une petite chance de remplacer une quête du jour) ----------
+  pecheur-rare-01:
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450}
+    objectives: [ "FISH:ANY:60", "DELIVER:NAUTILUS_SHELL:2" ]
+  pecheur-rare-02:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
     objectives: [ "EXPLORE:FROZEN_OCEAN:1", "FISH:SALMON:12" ]
-  - tier: normal
-    reward: 300
-    objectives: [ "KILL:GLOW_SQUID:6", "ITEM:GLOW_ITEM_FRAME:4" ]
+  pecheur-rare-03:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
+    objectives: [ "KILL:GLOW_SQUID:6", "DELIVER:GLOW_ITEM_FRAME:4" ]
 
-story:
-  - rank: apprenti
-    title: "<primary>La première prise"
-    text: [ "<info>Le vieux Yann répare ses filets sur le ponton.", "<info>« La mer donne à ceux qui savent attendre. »" ]
-    reward: 300
-    xp: 150
-    objectives: [ "FISH:#fish:40", "ITEM:COOKED_COD:16" ]
-  - rank: compagnon
-    title: "<primary>Le banc de saumons"
-    text: [ "<info>Les saumons remontent la rivière, c'est le moment." ]
-    reward: 500
-    xp: 200
+  # ---------- L'histoire du métier : une étape par rang ----------
+  pecheur-histoire-apprenti:
+    name: "<primary>La première prise"
+    description: [ "<info>Le vieux Yann répare ses filets sur le ponton.", "<info>« La mer donne à ceux qui savent attendre. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 300, xp: 150, rank: apprenti}
+    objectives: [ "FISH:#fish:40", "DELIVER:COOKED_COD:16" ]
+  pecheur-histoire-compagnon:
+    name: "<primary>Le banc de saumons"
+    description: [ "<info>Les saumons remontent la rivière, c'est le moment." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 500, xp: 200, rank: compagnon}
     objectives: [ "FISH:SALMON:32", "SMELT:COOKED_SALMON:32" ]
-  - rank: artisan
-    title: "<primary>Les mers chaudes"
-    text: [ "<info>Yann te parle de poissons aux mille couleurs, très loin au sud." ]
-    reward: 800
-    xp: 300
+  pecheur-histoire-artisan:
+    name: "<primary>Les mers chaudes"
+    description: [ "<info>Yann te parle de poissons aux mille couleurs, très loin au sud." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 800, xp: 300, rank: artisan}
     objectives: [ "EXPLORE:WARM_OCEAN:1", "FISH:TROPICAL_FISH:8", "FISH:PUFFERFISH:8" ]
-  - rank: expert
-    title: "<primary>Le temple englouti"
-    text: [ "<info>Un temple dort au fond de l'océan, gardé par des créatures étranges." ]
-    reward: 1200
-    xp: 400
-    objectives: [ "KILL:GUARDIAN:30", "KILL:ELDER_GUARDIAN:1", "ITEM:SPONGE:4" ]
-  - rank: maitre
-    title: "<primary>Le seigneur des mers"
-    text: [ "<info>Yann te tend sa canne la plus précieuse.", "<info>« L'océan t'appartient. »" ]
-    reward: 2000
-    xp: 500
-    objectives: [ "FISH:ANY:500", "ITEM:NAUTILUS_SHELL:4" ]
+  pecheur-histoire-expert:
+    name: "<primary>Le temple englouti"
+    description: [ "<info>Un temple dort au fond de l'océan, gardé par des créatures étranges." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 1200, xp: 400, rank: expert}
+    objectives: [ "KILL:GUARDIAN:30", "DELIVER:SPONGE:4", "DELIVER:PRISMARINE:32" ]
+  pecheur-histoire-maitre:
+    name: "<primary>Le seigneur des mers"
+    description: [ "<info>Yann te tend sa canne la plus précieuse.", "<info>« L'océan t'appartient. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 2000, xp: 500, rank: maitre}
+    objectives: [ "FISH:ANY:500", "DELIVER:NAUTILUS_SHELL:4" ]
+
+  # ---------- Nouvelles quêtes du jour ----------
+  pecheur-jour-21:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "FISH:ANY:12", "CRAFT:FISHING_ROD:1" ]
+  pecheur-jour-22:
+    name: "<primary>L'heure bleue"
+    description: [ "<info>Les poissons mordent mieux quand le soleil se couche." ]
+    meta: {kind: daily, tier: easy, reward: 140}
+    objectives:
+      - {type: fish, target: "#fish", amount: 12, where: {time: night}}
+  pecheur-jour-23:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "FISH:COD:8", "SMELT:COOKED_COD:8", "DELIVER:COOKED_COD:8" ]
+  pecheur-jour-24:
+    name: "<primary>Pêche sous la pluie"
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: fish, target: ANY, amount: 25, where: {weather: rain}}
+      - {type: deliver, target: KELP, amount: 32}
+  pecheur-jour-25:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREED:TURTLE:2", "DELIVER:SEAGRASS:32", "DELIVER:TURTLE_SCUTE:1" ]
+  pecheur-jour-26:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "KILL:DROWNED:8", "DELIVER:COPPER_INGOT:16", "DELIVER:NAUTILUS_SHELL:1" ]
+  pecheur-jour-27:
+    name: "<primary>Les rivières"
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: fish, target: SALMON, amount: 16, where: {biomes: [river, frozen_river]}}
+      - {type: deliver, target: COOKED_SALMON, amount: 8}
+  pecheur-jour-28:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "FISH:ANY:70", "CRAFT:DRIED_KELP_BLOCK:16", "DELIVER:COOKED_SALMON:24" ]
+  pecheur-jour-29:
+    name: "<primary>Le récif"
+    meta: {kind: daily, tier: hard, reward: 320, min-rank: compagnon}
+    objectives:
+      - {type: fish, target: TROPICAL_FISH, amount: 6, where: {biomes: [warm_ocean, lukewarm_ocean, deep_lukewarm_ocean]}}
+      - {type: deliver, target: TUBE_CORAL_BLOCK, amount: 4}
+      - {type: deliver, target: SEA_PICKLE, amount: 8}
+  pecheur-jour-30:
+    meta: {kind: daily, tier: hard, reward: 310}
+    objectives: [ "KILL:GUARDIAN:8", "FISH:ANY:30", "DELIVER:PRISMARINE_CRYSTALS:8" ]
+
+  # ---------- Au village (lobby) : Gaspard le Poissonnier, au Lac ----------
+  # Les poissons pêchés au Lac comptent pour ces quêtes et restent à toi (Gaspard les rachète aussi).
+  pecheur-village-friture:
+    name: "<aqua>La friture de Gaspard"
+    description: [ "<info>Le poissonnier du Lac prépare une grande friture pour la fête." ]
+    requires: [ "reputation eternpc:poissonnier 10" ]
+    reputation: 2
+    meta: {kind: daily, tier: normal, reward: 230}
+    stages:
+      - id: rencontre
+        text: "<info>Va voir <accent>Gaspard</accent>, le poissonnier du Lac (lobby)"
+        objectives: [ {type: talk, npc: poissonnier} ]
+        say: [ "Une friture pour tout le village, rien que ça !", "Rapporte-moi des gardons et des perches du Lac, ce sont les meilleurs pour ça." ]
+      - id: peche
+        text: "<info>Pêche des petits poissons au Lac"
+        objectives:
+          - {type: signal, key: eterhub:fish, match: {fish: [gardon, perche]}, amount: 10, text: "Gardons ou perches du Lac"}
+        turn-in: [ npc:poissonnier ]
+        say: [ "Ça sent déjà bon ! Reviens ce soir, je t'en garde une assiette, {player}." ]
+  pecheur-village-gros-poisson:
+    name: "<aqua>Le gros poisson"
+    description: [ "<info>Gaspard parie qu'on ne sortira jamais un poisson de plus de trois kilos." ]
+    requires: [ "reputation eternpc:poissonnier 15" ]
+    reputation: 3
+    meta: {kind: rare, tier: normal, reward: 330}
+    stages:
+      - id: pari
+        text: "<info>Va relever le pari de <accent>Gaspard</accent>"
+        objectives: [ {type: talk, npc: poissonnier} ]
+        say: [ "Trois kilos ! Personne n'y arrive. Prouve-moi le contraire." ]
+      - id: peche
+        text: "<info>Pêche au Lac un poisson de plus de 3 kg"
+        objectives:
+          - {type: signal, key: eterhub:fish, match: {grams: ">=3000"}, amount: 1, scale: false, text: "Un poisson de plus de 3 kg"}
+          - {type: signal, key: eterhub:fish, match: {grams: ">=8000"}, amount: 1, optional: true, scale: false, text: "Un monstre de plus de 8 kg"}
+        turn-in: [ npc:poissonnier ]
+        say: [ "Par ma barbe... Tu as gagné, {player}. La tournée est pour moi !" ]
+  pecheur-village-truites:
+    name: "<aqua>Truites et sandres"
+    requires: [ "reputation eternpc:poissonnier 15" ]
+    reputation: 2
+    meta: {kind: daily, tier: hard, reward: 320}
+    stages:
+      - id: rencontre
+        text: "<info>Va voir <accent>Gaspard</accent> au Lac"
+        objectives: [ {type: talk, npc: poissonnier} ]
+        say: [ "Un restaurant de la ville me commande des poissons fins. Truites et sandres, rien d'autre !" ]
+      - id: peche
+        text: "<info>Pêche des truites et des sandres au Lac"
+        objectives:
+          - {type: signal, key: eterhub:fish, match: {fish: truite}, amount: 3, text: "Truites du Lac"}
+          - {type: signal, key: eterhub:fish, match: {fish: sandre}, amount: 2, text: "Sandres du Lac"}
+        turn-in: [ npc:poissonnier ]
+        say: [ "Superbes ! Le chef va être ravi." ]
+  pecheur-village-nuit:
+    name: "<aqua>La lueur sous l'eau"
+    description: [ "<info>On raconte qu'une anguille spectrale hante le Lac..." ]
+    requires: [ "reputation eternpc:poissonnier 25" ]
+    reputation: 4
+    meta: {kind: rare, tier: hard, reward: 480}
+    stages:
+      - id: legende
+        text: "<info>Écoute la légende de <accent>Gaspard</accent>"
+        objectives: [ {type: talk, npc: poissonnier} ]
+        say: [ "Mon grand-père l'a vue, une seule fois. Une lueur verte sous l'eau...", "Pêche longtemps, et ouvre l'œil." ]
+      - id: guet
+        text: "<info>Pêche au Lac en guettant la lueur"
+        objectives:
+          - {type: signal, key: eterhub:fish, amount: 20, text: "Prises au Lac"}
+          - {type: signal, key: eterhub:fish, match: {fish: anguille-spectrale}, amount: 1, optional: true, scale: false, text: "L'anguille spectrale"}
+        turn-in: [ npc:poissonnier ]
+        say: [ "Alors, tu l'as vue ? ... Non ? Ce n'est que partie remise." ]
+  pecheur-village-legende:
+    name: "<gold>La carpe dorée"
+    description: [ "<info>Le trophée de toute une vie de pêcheur." ]
+    requires: [ "reputation eternpc:poissonnier 40" ]
+    reputation: 6
+    meta: {kind: rare, tier: hard, reward: 700, min-rank: artisan}
+    stages:
+      - id: rencontre
+        text: "<info>Va voir <accent>Gaspard</accent> au Lac"
+        objectives: [ {type: talk, npc: poissonnier} ]
+        say: [ "Tu es devenu un vrai pêcheur, {player}. Il est temps de viser la légende." ]
+      - id: rares
+        text: "<info>Pêche des poissons rares au Lac"
+        objectives:
+          - {type: signal, key: eterhub:fish, match: {rarity: [rare, legendary]}, amount: 3, text: "Poissons rares du Lac"}
+      - id: legende
+        text: "<info>Pêche une prise légendaire au Lac"
+        objectives:
+          - {type: signal, key: eterhub:fish, match: {rarity: legendary}, amount: 1, scale: false, text: "Une prise légendaire"}
+        turn-in: [ npc:poissonnier ]
+        say: [ "Je n'y croyais plus... Ton nom sera gravé sur le ponton, {player} !" ]
+
+  # ---------- Quêtes rares spéciales ----------
+  pecheur-rare-04:
+    name: "<light_purple>Pêcher dans l'orage"
+    description: [ "<info>Les vieux pêcheurs disent que l'orage attire les trésors." ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 460}
+    objectives:
+      - {type: fish, target: ANY, amount: 20, where: {weather: thunder}}
+      - {type: deliver, target: NAME_TAG, amount: 1}
+  pecheur-rare-05:
+    name: "<light_purple>Le marché aux poissons"
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 320}
+    stages:
+      - id: peche
+        text: "<info>Remplis tes paniers"
+        objectives: [ "FISH:COD:24", "FISH:SALMON:12" ]
+      - id: cuisine
+        text: "<info>Cuisine la pêche"
+        objectives: [ "SMELT:COOKED_COD:24", "SMELT:COOKED_SALMON:12" ]
+      - id: vente
+        text: "<info>Vends du poisson aux villageois"
+        objectives: [ "TRADE:ANY:4" ]
+  pecheur-rare-06:
+    name: "<light_purple>La course au banc"
+    description: [ "<info>Un banc de saumons remonte la rivière : il passe vite !" ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450}
+    stages:
+      - id: preparation
+        text: "<info>Prépare ta canne : il te faut une canne neuve"
+        objectives: [ "CRAFT:FISHING_ROD:1" ]
+      - id: banc
+        text: "<info>Pêche 12 saumons en 10 minutes !"
+        time-limit: 600
+        objectives: [ "FISH:SALMON:12" ]
+  pecheur-rare-07:
+    name: "<light_purple>Les abysses"
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 500, min-rank: artisan}
+    objectives:
+      - {type: explore, target: DEEP_OCEAN, amount: 1}
+      - {type: kill, target: GUARDIAN, amount: 10}
+      - {type: deliver, target: WET_SPONGE, amount: 1, optional: true, scale: false}
+      - {type: deliver, target: PRISMARINE_SHARD, amount: 24}
+
+  # ---------- Nouvelles quêtes de la semaine ----------
+  pecheur-semaine-04:
+    name: "<gold>Le grand concours de pêche"
+    reputation: 3
+    meta: {kind: weekly, reward: 1050, xp: 220}
+    stages:
+      - id: concours
+        text: "<info>Pêche autant que tu peux"
+        objectives: [ "FISH:#fish:250", "FISH:PUFFERFISH:8", "FISH:TROPICAL_FISH:8" ]
+      - id: pesee
+        text: "<info>Apporte les plus belles prises à la guilde"
+        objectives: [ "DELIVER:COOKED_SALMON:32", "DELIVER:PUFFERFISH:4" ]
+  pecheur-semaine-05:
+    name: "<gold>Le tour des océans"
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 210, min-rank: compagnon}
+    objectives:
+      - {type: fish, target: ANY, amount: 40, where: {biomes: [frozen_ocean, deep_frozen_ocean, cold_ocean]}}
+      - {type: fish, target: ANY, amount: 40, where: {biomes: [warm_ocean, lukewarm_ocean]}}
+      - {type: deliver, target: NAUTILUS_SHELL, amount: 2}

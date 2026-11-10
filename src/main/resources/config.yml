@@ -4,7 +4,8 @@
 #
 #  La guilde des métiers : chaque joueur a UN métier à la fois, mais garde son niveau dans chaque métier pratiqué.
 #  Chaque jour, des quêtes (objets à livrer, actions à faire), une quête de la semaine, et l'histoire du métier.
-#  Les quêtes sont dans quests/<métier>.yml. Les PNJ sont ceux d'EterNpc, avec les actions d'EterJob :
+#  Les quêtes sont dans quests/<métier>.yml, au format d'EterQuest (le moteur des quêtes, qui les partage avec tout
+#  le réseau : augmenter « version » du fichier après un changement). Les PNJ sont ceux d'EterNpc, avec les actions d'EterJob :
 #    eterjob:guild               le chef de guilde (choisir ou changer de métier, rangs, avantages, classement)
 #    eterjob:quests <métier>     le donneur de quêtes du métier
 #    eterjob:story <métier>      le maître du métier (l'histoire)    eterjob:perks [métier]   les avantages
@@ -140,6 +141,7 @@ perks:
     maitre: { lure: 3, treasure-bonus: 0.3, effects: [ "luck:1", "dolphins_grace:0", "water_breathing:0" ] }
 
 # Donneur de quêtes de chaque métier (PNJ d'EterNpc) : un « ! » apparaît au-dessus de lui quand une quête est prête.
+# Une quête qui se rend chez un PNJ du village (lobby) a son propre « ! » (EterQuest).
 quest-givers:
   mineur: "eternpc:mineur"
   bucheron: "eternpc:bucheron"
@@ -147,24 +149,8 @@ quest-givers:
   chasseur: "eternpc:chasseur"
   pecheur: "eternpc:pecheur"
 
-anti-cheat:
-  # Les créatures des spawners de trial chamber comptent-elles ?
-  count-trial-spawners: false
-  # Pêcher « n'importe quoi » : seuls les poissons comptent (pas les déchets ni les trésors).
-  fish-only-fish: true
-  # Pas de progrès avant ce temps de jeu actif sur le serveur (minutes, EterSuccess ; 0 : aucun).
-  min-playtime-minutes: 30
-  # Plus de blocs cassés en une minute : le staff est prévenu (0 : jamais).
-  break-alert-per-minute: 300
-
 display:
-  # Barre de boss pendant une action (sinon : au-dessus de la barre d'objets).
-  boss-bar: true
-  # Une quête est suivie dans la sidebar dès qu'elle avance (si aucune ne l'est).
-  auto-track: true
-  # Rappel « quête prête à valider », au plus toutes les N minutes (0 : jamais).
-  ready-reminder-minutes: 60
-  # Un nouveau maître est annoncé sur tout le réseau.
+  # Un nouveau maître est annoncé sur tout le réseau. (Barre de boss, sidebar, rappels et anti-triche : EterQuest.)
   announce-master: true
 
 # Bouton en bas des menus : commande (sans le /) pour revenir (ex : "menu") ; vide : fermer.

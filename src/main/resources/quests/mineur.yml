@@ -1,135 +1,277 @@
-# Quêtes du métier « mineur » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+# Quêtes du métier « mineur » (EterJob), au format d'EterQuest (le moteur des quêtes, partagé avec tout le réseau).
+# Après un changement : AUGMENTER « version » ci-dessous (la plus haute l'emporte partout), puis /eterjob reload.
 #
-# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
-# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
-# Objectif : "TYPE:CIBLE:QUANTITÉ"
-#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
-#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
-#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
-#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
-#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
-#   TRADE    commercer avec un villageois
-# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
-# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
-#
-# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
-# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
-#          (title, text : le lore, en MiniMessage).
+# Chaque quête : un identifiant définitif (minuscules, chiffres, - et _), puis :
+#   meta     ce que la guilde en fait : kind (daily, weekly, rare, story), tier (easy, normal, hard), reward (Heloks,
+#            × la taille du rang), xp (XP de métier ; sinon celle du niveau, config.yml), min-rank (tirée à partir de ce
+#            rang : apprenti, compagnon, artisan, expert, maitre), rank (story : l'étape de ce rang)
+#   name, description   nom et texte (MiniMessage) ; sans nom : « Quête facile », « ✦ Quête rare »...
+#   requires conditions pour être tirée : « reputation <pnj> <min> » (réputation × ratio du PNJ), « done <quête> »...
+#   reputation          réputation gagnée à la fin (1 par défaut ici)
+#   objectives (une étape) ou stages (plusieurs : id, text, objectives, turn-in, say, time-limit, branches...)
+# Objectif : "TYPE:CIBLE:QUANTITÉ" ou {type, target, amount, where, optional, scale, text}
+#   break harvest kill fish craft smelt breed explore enchant trade : actions du jeu (cible, ANY, ou un groupe
+#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: fermier) ;
+#   signal : ce que fait le village (eterhub:harvest {crop, quality, zone}, eterhub:fish {fish, rarity, grams}...)
+#   where : {time: day|night, weather: rain|thunder|clear, biomes: [...], dimension: nether, min-y, max-y}
+#   optional: true -> objectif bonus (pas nécessaire) ; scale: false -> la quantité ne grandit pas avec le rang
+# turn-in : où se rend la dernière étape. Par défaut ici : au donneur de quêtes (giver), ou à distance (remote, /job)
+#   s'il n'y a pas d'objets à remettre ; npc:<pnj> : chez ce PNJ (ex : au village).
+# Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
+# structure : shulkers, gardien ancien, brutes piglins).
 
-daily:
-  - tier: easy
-    reward: 120
-    objectives: [ "BREAK:STONE:128", "ITEM:COAL:16" ]
-  - tier: easy
-    reward: 120
-    objectives: [ "BREAK:COAL_ORE:16", "ITEM:TORCH:32" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "BREAK:COPPER_ORE:12", "ITEM:COPPER_INGOT:24" ]
-  - tier: easy
-    reward: 130
+version: 1
+defaults:
+  category: job
+  tags: [mineur]
+  turn-in: [giver, remote]
+  reputation: 1
+  meta: {job: mineur}
+
+quests:
+
+  # ---------- Quêtes du jour (une par niveau chaque jour ; jamais celles d'hier) ----------
+  mineur-jour-01:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "BREAK:STONE:128", "DELIVER:COAL:16" ]
+  mineur-jour-02:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "BREAK:COAL_ORE:16", "DELIVER:TORCH:32" ]
+  mineur-jour-03:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREAK:COPPER_ORE:12", "DELIVER:COPPER_INGOT:24" ]
+  mineur-jour-04:
+    meta: {kind: daily, tier: easy, reward: 130}
     objectives: [ "BREAK:DIORITE:32", "BREAK:ANDESITE:32", "BREAK:GRANITE:32" ]
-  - tier: easy
-    reward: 140
-    objectives: [ "BREAK:STONE:96", "ITEM:FURNACE:4", "ITEM:STONE_BRICKS:32" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:IRON_ORE:16", "ITEM:IRON_INGOT:16" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:DEEPSLATE:192", "BREAK:TUFF:32", "ITEM:POLISHED_DEEPSLATE:32" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "BREAK:REDSTONE_ORE:6", "BREAK:LAPIS_ORE:4", "ITEM:REDSTONE:32", "ITEM:LAPIS_LAZULI:16" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "BREAK:GOLD_ORE:8", "ITEM:GOLD_INGOT:8", "ITEM:RAIL:32" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:NETHERRACK:128", "BREAK:NETHER_QUARTZ_ORE:12", "ITEM:QUARTZ:32" ]
-  - tier: normal
-    reward: 210
-    objectives: [ "BREAK:AMETHYST_CLUSTER:8", "ITEM:AMETHYST_SHARD:24", "ITEM:CALCITE:16" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "BREAK:DEEPSLATE_DIAMOND_ORE:4", "ITEM:DIAMOND:6", "ITEM:IRON_BLOCK:2" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "BREAK:DEEPSLATE_IRON_ORE:24", "BREAK:DEEPSLATE_GOLD_ORE:8", "BREAK:DEEPSLATE_REDSTONE_ORE:8", "ITEM:IRON_INGOT:16" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "BREAK:OBSIDIAN:12", "ITEM:OBSIDIAN:12", "ITEM:DIAMOND:2" ]
-  - tier: hard
-    reward: 320
-    objectives: [ "BREAK:ANCIENT_DEBRIS:2", "BREAK:BASALT:64", "ITEM:NETHERITE_SCRAP:2" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "BREAK:EMERALD_ORE:2", "ITEM:EMERALD:4", "ITEM:GOLD_BLOCK:2" ]
-  - tier: hard
-    reward: 280
-    objectives: [ "BREAK:BLACKSTONE:96", "BREAK:NETHER_GOLD_ORE:16", "ITEM:GOLD_INGOT:8" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "SMELT:IRON_INGOT:16", "ITEM:IRON_INGOT:8" ]
-  - tier: normal
-    reward: 200
+  mineur-jour-05:
+    meta: {kind: daily, tier: easy, reward: 140}
+    objectives: [ "BREAK:STONE:96", "DELIVER:FURNACE:4", "DELIVER:STONE_BRICKS:32" ]
+  mineur-jour-06:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:IRON_ORE:16", "DELIVER:IRON_INGOT:16" ]
+  mineur-jour-07:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:DEEPSLATE:192", "BREAK:TUFF:32", "DELIVER:POLISHED_DEEPSLATE:32" ]
+  mineur-jour-08:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREAK:REDSTONE_ORE:6", "BREAK:LAPIS_ORE:4", "DELIVER:REDSTONE:32", "DELIVER:LAPIS_LAZULI:16" ]
+  mineur-jour-09:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREAK:GOLD_ORE:8", "DELIVER:GOLD_INGOT:8", "DELIVER:RAIL:32" ]
+  mineur-jour-10:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:NETHERRACK:128", "BREAK:NETHER_QUARTZ_ORE:12", "DELIVER:QUARTZ:32" ]
+  mineur-jour-11:
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives: [ "BREAK:AMETHYST_CLUSTER:8", "DELIVER:AMETHYST_SHARD:24", "DELIVER:CALCITE:16" ]
+  mineur-jour-12:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "BREAK:DEEPSLATE_DIAMOND_ORE:4", "DELIVER:DIAMOND:6", "DELIVER:IRON_BLOCK:2" ]
+  mineur-jour-13:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "BREAK:DEEPSLATE_IRON_ORE:24", "BREAK:DEEPSLATE_GOLD_ORE:8", "BREAK:DEEPSLATE_REDSTONE_ORE:8", "DELIVER:IRON_INGOT:16" ]
+  mineur-jour-14:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "BREAK:OBSIDIAN:12", "DELIVER:OBSIDIAN:12", "DELIVER:DIAMOND:2" ]
+  mineur-jour-15:
+    meta: {kind: daily, tier: hard, reward: 320}
+    objectives: [ "BREAK:ANCIENT_DEBRIS:2", "BREAK:BASALT:64", "DELIVER:NETHERITE_SCRAP:2" ]
+  mineur-jour-16:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "BREAK:EMERALD_ORE:2", "DELIVER:EMERALD:4", "DELIVER:GOLD_BLOCK:2" ]
+  mineur-jour-17:
+    meta: {kind: daily, tier: hard, reward: 280}
+    objectives: [ "BREAK:BLACKSTONE:96", "BREAK:NETHER_GOLD_ORE:16", "DELIVER:GOLD_INGOT:8" ]
+  mineur-jour-18:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "SMELT:IRON_INGOT:16", "DELIVER:IRON_INGOT:8" ]
+  mineur-jour-19:
+    meta: {kind: daily, tier: normal, reward: 200}
     objectives: [ "BREAK:#ores:48", "CRAFT:RAIL:32" ]
-  - tier: hard
-    reward: 300
-    min-rank: artisan
-    objectives: [ "EXPLORE:DEEP_DARK:1", "BREAK:SCULK:32", "ITEM:ECHO_SHARD:1" ]
+  mineur-jour-20:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: artisan}
+    objectives: [ "EXPLORE:DEEP_DARK:1", "BREAK:SCULK:32", "DELIVER:ECHO_SHARD:1" ]
 
-weekly:
-  - reward: 900
-    xp: 200
-    objectives: [ "BREAK:#ores:400", "ITEM:IRON_BLOCK:8" ]
-  - reward: 950
-    xp: 200
+  # ---------- Quêtes de la semaine (longues, bien payées) ----------
+  mineur-semaine-01:
+    reputation: 3
+    meta: {kind: weekly, reward: 900, xp: 200}
+    objectives: [ "BREAK:#ores:400", "DELIVER:IRON_BLOCK:8" ]
+  mineur-semaine-02:
+    reputation: 3
+    meta: {kind: weekly, reward: 950, xp: 200}
     objectives: [ "BREAK:DEEPSLATE:2000", "SMELT:IRON_INGOT:128" ]
-  - reward: 1000
-    xp: 220
-    min-rank: artisan
-    objectives: [ "BREAK:ANCIENT_DEBRIS:6", "ITEM:NETHERITE_INGOT:1" ]
+  mineur-semaine-03:
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 220, min-rank: artisan}
+    objectives: [ "BREAK:ANCIENT_DEBRIS:6", "DELIVER:NETHERITE_INGOT:1" ]
 
-rare:
-  - tier: hard
-    reward: 450
-    objectives: [ "BREAK:DEEPSLATE_EMERALD_ORE:2", "ITEM:EMERALD_BLOCK:1" ]
-  - tier: normal
-    reward: 300
+  # ---------- Quêtes rares (une petite chance de remplacer une quête du jour) ----------
+  mineur-rare-01:
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450}
+    objectives: [ "BREAK:DEEPSLATE_EMERALD_ORE:2", "DELIVER:EMERALD_BLOCK:1" ]
+  mineur-rare-02:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
     objectives: [ "EXPLORE:DRIPSTONE_CAVES:1", "BREAK:POINTED_DRIPSTONE:32" ]
-  - tier: normal
-    reward: 300
-    objectives: [ "EXPLORE:LUSH_CAVES:1", "ITEM:GLOW_BERRIES:16" ]
+  mineur-rare-03:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
+    objectives: [ "EXPLORE:LUSH_CAVES:1", "DELIVER:GLOW_BERRIES:16" ]
 
-story:
-  - rank: apprenti
-    title: "<primary>La première galerie"
-    text: [ "<info>Le vieux Brann te tend une pioche ébréchée.", "<info>« Prouve que tu sais creuser, et la guilde t'ouvrira ses portes. »" ]
-    reward: 300
-    xp: 150
-    objectives: [ "BREAK:STONE:256", "ITEM:COAL:32" ]
-  - rank: compagnon
-    title: "<primary>Le filon de fer"
-    text: [ "<info>Les forges de la guilde manquent de fer.", "<info>Brann t'indique une veine oubliée, sous les collines." ]
-    reward: 500
-    xp: 200
-    objectives: [ "BREAK:IRON_ORE:48", "SMELT:IRON_INGOT:48", "ITEM:IRON_BLOCK:4" ]
-  - rank: artisan
-    title: "<primary>Les abîmes"
-    text: [ "<info>Sous l'ardoise des abîmes dorment des pierres plus rares.", "<info>« Ne descends jamais sans torches. »" ]
-    reward: 800
-    xp: 300
-    objectives: [ "BREAK:DEEPSLATE_DIAMOND_ORE:8", "ITEM:DIAMOND:12" ]
-  - rank: expert
-    title: "<primary>Le cœur du Nether"
-    text: [ "<info>Une légende parle d'un métal plus dur que le diamant.", "<info>Brann t'avoue l'avoir cherché toute sa vie." ]
-    reward: 1200
-    xp: 400
-    objectives: [ "BREAK:ANCIENT_DEBRIS:8", "ITEM:NETHERITE_INGOT:2" ]
-  - rank: maitre
-    title: "<primary>Le maître des profondeurs"
-    text: [ "<info>Brann pose sa pioche sur l'établi.", "<info>« La guilde n'a plus rien à t'apprendre. Elle a tout à apprendre de toi. »" ]
-    reward: 2000
-    xp: 500
-    objectives: [ "BREAK:#ores:1000", "ITEM:DIAMOND_BLOCK:2", "ITEM:NETHERITE_INGOT:2" ]
+  # ---------- L'histoire du métier : une étape par rang ----------
+  mineur-histoire-apprenti:
+    name: "<primary>La première galerie"
+    description: [ "<info>Le vieux Brann te tend une pioche ébréchée.", "<info>« Prouve que tu sais creuser, et la guilde t'ouvrira ses portes. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 300, xp: 150, rank: apprenti}
+    objectives: [ "BREAK:STONE:256", "DELIVER:COAL:32" ]
+  mineur-histoire-compagnon:
+    name: "<primary>Le filon de fer"
+    description: [ "<info>Les forges de la guilde manquent de fer.", "<info>Brann t'indique une veine oubliée, sous les collines." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 500, xp: 200, rank: compagnon}
+    objectives: [ "BREAK:IRON_ORE:48", "SMELT:IRON_INGOT:48", "DELIVER:IRON_BLOCK:4" ]
+  mineur-histoire-artisan:
+    name: "<primary>Les abîmes"
+    description: [ "<info>Sous l'ardoise des abîmes dorment des pierres plus rares.", "<info>« Ne descends jamais sans torches. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 800, xp: 300, rank: artisan}
+    objectives: [ "BREAK:DEEPSLATE_DIAMOND_ORE:8", "DELIVER:DIAMOND:12" ]
+  mineur-histoire-expert:
+    name: "<primary>Le cœur du Nether"
+    description: [ "<info>Une légende parle d'un métal plus dur que le diamant.", "<info>Brann t'avoue l'avoir cherché toute sa vie." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 1200, xp: 400, rank: expert}
+    objectives: [ "BREAK:ANCIENT_DEBRIS:8", "DELIVER:NETHERITE_INGOT:2" ]
+  mineur-histoire-maitre:
+    name: "<primary>Le maître des profondeurs"
+    description: [ "<info>Brann pose sa pioche sur l'établi.", "<info>« La guilde n'a plus rien à t'apprendre. Elle a tout à apprendre de toi. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 2000, xp: 500, rank: maitre}
+    objectives: [ "BREAK:#ores:1000", "DELIVER:DIAMOND_BLOCK:2", "DELIVER:NETHERITE_INGOT:2" ]
+
+  # ---------- Nouvelles quêtes du jour ----------
+  mineur-jour-21:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "BREAK:#stone:160", "CRAFT:TORCH:48" ]
+  mineur-jour-22:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREAK:COAL_ORE:12", "BREAK:COPPER_ORE:12", "DELIVER:COAL:24" ]
+  mineur-jour-23:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREAK:GRAVEL:32", "DELIVER:FLINT:8", "CRAFT:FLINT_AND_STEEL:1" ]
+  mineur-jour-24:
+    name: "<primary>Sous la surface"
+    description: [ "<info>Le vrai minerai se cache sous la couche 0." ]
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: break, target: DEEPSLATE, amount: 160, where: {max-y: 0}}
+      - {type: break, target: "#ores", amount: 16, where: {max-y: 0}}
+  mineur-jour-25:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "SMELT:COPPER_INGOT:32", "CRAFT:LIGHTNING_ROD:4", "DELIVER:COPPER_BLOCK:2" ]
+  mineur-jour-26:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREAK:CLAY:24", "SMELT:BRICK:32", "DELIVER:BRICKS:8" ]
+  mineur-jour-27:
+    name: "<primary>Le chemin de fer"
+    meta: {kind: daily, tier: normal, reward: 220}
+    objectives: [ "BREAK:#ores:32", "CRAFT:RAIL:48", "CRAFT:POWERED_RAIL:6" ]
+  mineur-jour-28:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "BREAK:DEEPSLATE_LAPIS_ORE:8", "DELIVER:LAPIS_BLOCK:4", "ENCHANT:ANY:2" ]
+  mineur-jour-29:
+    name: "<primary>La mine du Nether"
+    meta: {kind: daily, tier: hard, reward: 310}
+    objectives:
+      - {type: break, target: "#ores", amount: 40, where: {dimension: nether}}
+      - {type: deliver, target: QUARTZ_BLOCK, amount: 8}
+  mineur-jour-30:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: compagnon}
+    objectives: [ "BREAK:DEEPSLATE_REDSTONE_ORE:16", "CRAFT:REPEATER:8", "DELIVER:REDSTONE_BLOCK:4" ]
+
+  # ---------- Quêtes rares spéciales ----------
+  mineur-rare-04:
+    name: "<light_purple>Le coup de grisou"
+    description: [ "<info>Une poche de gaz menace la galerie : creuse vite avant qu'elle ne s'effondre !" ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 460}
+    stages:
+      - id: preparation
+        text: "<info>Prépare tes torches"
+        objectives: [ "CRAFT:TORCH:32" ]
+      - id: galerie
+        text: "<info>Creuse 200 blocs de pierre en 8 minutes !"
+        time-limit: 480
+        objectives: [ "BREAK:#stone:200" ]
+  mineur-rare-05:
+    name: "<light_purple>Le géode"
+    description: [ "<info>Un géologue de la guilde cherche des cristaux intacts." ]
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 330}
+    objectives: [ "BREAK:AMETHYST_CLUSTER:12", "BREAK:BUDDING_AMETHYST:1", "DELIVER:AMETHYST_SHARD:32", "CRAFT:SPYGLASS:1" ]
+  mineur-rare-06:
+    name: "<light_purple>La veine d'émeraude"
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 500, min-rank: compagnon}
+    objectives:
+      - {type: explore, target: WINDSWEPT_HILLS, amount: 1}
+      - {type: break, target: EMERALD_ORE, amount: 3}
+      - {type: deliver, target: EMERALD, amount: 6}
+  mineur-rare-07:
+    name: "<light_purple>Les ténèbres"
+    description: [ "<info>Personne ne descend dans les abîmes sans raison. Toi, tu en as une." ]
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 520, min-rank: artisan}
+    requires: [ "reputation eternpc:mineur 20" ]
+    stages:
+      - id: descente
+        text: "<info>Descends dans les abîmes"
+        objectives:
+          - {type: explore, target: DEEP_DARK, amount: 1}
+          - {type: break, target: DEEPSLATE, amount: 128, where: {max-y: -30}}
+      - id: echos
+        text: "<info>Rapporte des fragments d'écho"
+        objectives: [ "DELIVER:ECHO_SHARD:2", "DELIVER:SCULK_CATALYST:1" ]
+  mineur-rare-08:
+    name: "<light_purple>La forge du nain"
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 340}
+    stages:
+      - id: minerai
+        text: "<info>Extrais le minerai"
+        objectives: [ "BREAK:IRON_ORE:24", "BREAK:GOLD_ORE:8" ]
+      - id: forge
+        text: "<info>Fais-le fondre"
+        objectives: [ "SMELT:IRON_INGOT:32", "SMELT:GOLD_INGOT:8" ]
+      - id: livraison
+        text: "<info>Livre les pièces forgées"
+        objectives: [ "DELIVER:ANVIL:1", "DELIVER:IRON_BLOCK:2" ]
+
+  # ---------- Nouvelles quêtes de la semaine ----------
+  mineur-semaine-04:
+    name: "<gold>Le grand chantier"
+    reputation: 3
+    meta: {kind: weekly, reward: 1050, xp: 220}
+    stages:
+      - id: excavation
+        text: "<info>Creuse les fondations"
+        objectives: [ "BREAK:#stone:3000" ]
+      - id: materiaux
+        text: "<info>Livre les matériaux"
+        objectives: [ "DELIVER:STONE_BRICKS:128", "DELIVER:IRON_BLOCK:4" ]
+  mineur-semaine-05:
+    name: "<gold>Le prospecteur"
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 210, min-rank: compagnon}
+    objectives:
+      - {type: break, target: "#ores", amount: 300, where: {max-y: 0}}
+      - {type: break, target: "#ores", amount: 100, where: {dimension: nether}}
+      - {type: deliver, target: DIAMOND, amount: 8}

@@ -7,10 +7,12 @@ EterResource). Document développeur, à tenir à jour avec le code.
 
 ## Prérequis
 
-- **EterLib 1.22.0+** (`depend`) : base, Redis et bus réseau, langues, menus, Dialogs, **actions**, sidebar, étiquettes.
+- **EterLib 1.25.0+** (`depend`) : base, Redis et bus réseau, langues, menus, Dialogs, **actions**, étiquettes.
+- **EterQuest 1.0.0+** (`depend`) : le **moteur des quêtes**. Les quêtes de métier sont des quêtes d'EterQuest
+  (propriétaire `eterjob`) : EterJob les écrit, les tire, les fait rendre et les paie ; EterQuest compte les objectifs
+  (anti-triche compris), gère les étapes, la barre de boss, la sidebar, les rappels et la boîte de récupération.
 - **EterEconomy** (`depend`, `EconomyApi`) : les récompenses (« EterJob · <métier> » dans `/ecostats`).
-- Facultatifs : **EterNpc 2.0.0+** (marqueur « ! » au-dessus du donneur de quêtes, nettoyage des anciens PNJ),
-  **EterClan** (pas de progrès sur le terrain d'un autre clan), **EterSuccess** (temps de jeu pour l'anti-triche).
+- Facultatif : **EterNpc 2.0.0+** (marqueur « ! » au-dessus du donneur de quêtes).
 
 ## PNJ : des actions, plus de rôle
 
@@ -43,34 +45,35 @@ Un « ! » apparaît au-dessus du donneur de quêtes de son métier quand une qu
 
 ## Quêtes
 
-**Répertoire** (`QuestCatalog`) : un fichier par métier, `quests/<métier>.yml` (copié s'il manque, relu par
-`/eterjob reload`, rapport au chargement) : `daily`, `weekly`, `rare`, `story` (une étape par rang, avec titre et texte).
-**Objectifs** (`Objective`, testé ; `ObjectiveTargets`) : `ITEM` (à livrer), et les actions `BREAK`, `HARVEST`, `KILL`,
-`FISH`, `CRAFT`, `SMELT`, `BREED`, `EXPLORE` (biome), `ENCHANT`, `TRADE` ; cible : matière, créature, biome, `ANY`, ou
-groupe `#ores #logs #crops #fish #stone #flowers` (un minerai et sa version des abîmes comptent pareil). 3 actions au plus.
+**Répertoire** (`QuestCatalog`) : un fichier par métier, `quests/<métier>.yml` (copié s'il manque ; un fichier
+d'EterJob 2.x est mis de côté en `.old`), **au format d'EterQuest**, envoyé à tout le réseau (augmenter `version`
+après un changement), relu par `/eterjob reload`. Ce qu'EterJob lit de chaque quête (`meta`) : `kind` (`daily`,
+`weekly`, `rare`, `story`), `tier`, `reward`, `xp`, `min-rank`, `rank` (l'étape d'histoire de ce rang). Une quête peut
+avoir des **étapes**, des objectifs **bonus**, des conditions de lieu et de moment (`where` : la nuit, sous l'orage,
+sous Y 0, dans un biome, dans le Nether), un **temps limité**, des **conditions** (`requires`, ex : réputation auprès
+d'un PNJ). 248 quêtes au départ (environ 50 par métier).
 
-**Tirage** (`JobService#ensureQuests`) : à minuit (`jobs.time-zone`, aussi pour les joueurs connectés : plus besoin de
-repasser au PNJ), une quête par niveau de `daily`, **jamais une d'hier**, avec `rare-chance` qu'elle soit rare ; la bonus
-quand elles sont faites ; la **quête de la semaine** (le lundi) ; l'**étape d'histoire** de son rang. Changer une quête :
-une fois par jour (`reroll-cost`).
+**Quêtes du village** (fermier, pêcheur) : une quête de métier peut se faire au lobby, chez un PNJ du village
+(Mathurin le Fermier `eternpc:fermier`, Aurèle le Vigneron `eternpc:vigneron`, Gaspard le Poissonnier
+`eternpc:poissonnier`) : lui parler, récolter dans les Champs ou pêcher au Lac (signaux d'EterHub), puis lui rendre la
+quête. Les récoltes faites pour une quête vont au panier de la commande : ni objet, ni plafond du jour des Champs.
+Elles demandent de la réputation auprès du PNJ (réputation d'EterLib × ratio du PNJ, `/eternpc reputation`).
 
-**Progression** (`JobProgress`, `JobProgressListener`) : comptée sur le thread principal, écrite par paquets (30 s,
-départ, avant chaque validation) en **s'ajoutant** (deux serveurs ne s'écrasent pas). Barre de boss pendant une action,
-quête suivie automatiquement, sidebar (quête suivie ou résumé de toutes), rappel « quête prête », messages coupables.
-**Anti-triche** : créatures naturelles (trial chamber réglable) tuées par le joueur (pas de chute ni de piège), blocs non
-posés, cultures mûres, pas sur le terrain d'un autre clan, poissons seulement (réglable), rien avant N minutes de jeu,
-cadence anormale signalée au staff.
+**Tirage** (`JobService#ensureQuests`) : à minuit (`jobs.time-zone`), une quête par niveau de `daily` (emplacements
+`daily-0` à `daily-2` d'EterQuest), **jamais une d'hier**, avec `rare-chance` qu'elle soit rare ; la `bonus` quand
+elles sont faites ; la `weekly` (le lundi) ; la `story` de son rang. Seules les quêtes dont les conditions sont
+remplies sont tirées. La récompense est fixée au tirage (taille du rang, bonus du niveau, bonus, rare). Changer une
+quête : une fois par jour (`reroll-cost`).
 
-**Valider** (`JobService#deliver`) : au donneur de quêtes, ou à distance avec `/job` pour une quête sans objet à livrer ;
-« tout valider ». Les objets (simples) sont pris, puis la base marque la quête faite **seulement si c'est toujours la même**
-(mêmes objectifs : pas changée ailleurs), pas déjà faite, actions accomplies : un seul paiement. La **récompense est lue en
-base**, avec les bonus : évènement, **métier le moins pratiqué** de la semaine, **série** (jours d'affilée), et le plafond
-par jour. Après une validation réussie, plus rien n'est rendu (pas de duplication) ; une quête refusée rend les objets, et
-ce qui ne tient pas va dans la **boîte de récupération** (`eterjob_box`, jamais au sol). Journal : `eterjob_log`.
+**Rendre et payer** : au donneur de quêtes (`giver`), à distance avec `/job` (`remote`, sans objet à remettre), ou
+chez un PNJ du village (`npc:<pnj>`). EterQuest valide une seule fois (même sur deux serveurs) et lance
+`QuestCompleteEvent` : EterJob réserve le paiement (`claim`) puis paie (bonus : évènement, **métier le moins
+pratiqué**, **série** ; plafond par jour), l'XP de métier, les rangs atteints. Une quête finie sur un serveur sans
+EterJob est payée à l'arrivée suivante. Chaque quête rapporte aussi de la **réputation** (EterLib).
 
 ## Menus (`module/menu`)
 
-`/job` : ses quêtes (à distance). Donneur de quêtes (`QuestMenu`), chef de guilde (`GuildMenu`), avantages par rang
+`/job` : ses quêtes (à distance ; le détail de chaque quête et de ses étapes vient d'EterQuest). Le journal de toutes les quêtes : `/quests` (EterQuest). Donneur de quêtes (`QuestMenu`), chef de guilde (`GuildMenu`), avantages par rang
 (`PerksMenu`), historique 7 jours (`HistoryMenu`), classement d'un métier (`RankingMenu`). `/job <joueur>` : son profil.
 
 ## Commandes et permissions
@@ -90,8 +93,9 @@ pour EterResource), `topQuests`, `questRank`. Événements : `JobQuestCompleteEv
 
 ## Données
 
-`eterjob_members`, `eterjob_levels`, `eterjob_quests` (emplacements 0-2 du jour, 3 bonus, 4 semaine, 5 histoire),
-`eterjob_box`, `eterjob_log` (60 jours), `eterjob_events`.
+`eterjob_members`, `eterjob_levels`, `eterjob_log` (60 jours), `eterjob_events`. Les quêtes en cours sont dans les tables
+d'EterQuest (propriétaire `eterjob`). **3.0.0** : `eterjob_quests` n'est plus utilisée (les joueurs reçoivent de
+nouvelles quêtes) ; les colis de `eterjob_box` passent une fois dans la boîte d'EterQuest.
 
 **2.0.0** a supprimé une fois les tables `etermarket_*` et les emplacements des PNJ `etermarket:*` (sans reprise) ;
 ce nettoyage est retiré depuis la 2.0.1.

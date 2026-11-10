@@ -4,7 +4,8 @@ import com.google.gson.JsonObject;
 import fr.eternom.eterJob.module.job.JobRepository;
 import fr.eternom.eterJob.module.job.JobService;
 import fr.eternom.eterJob.module.job.Levels;
-import fr.eternom.eterJob.module.job.Quest;
+import fr.eternom.eterJob.module.job.JobQuests;
+import fr.eternom.eterQuest.api.QuestInstance;
 import fr.eternom.eterJob.module.job.QuestCatalog;
 import fr.eternom.eterLib.EterLib;
 import fr.eternom.eterLib.helper.cache.NetworkBus;
@@ -70,7 +71,7 @@ public class AdminCommand implements TabExecutor {
                 change(sender, target, "métier " + job, (uuid, name) -> service.repository().setJob(uuid, job, System.currentTimeMillis()));
             }
             case "cooldown" -> change(sender, target, "délai de changement remis à zéro", (uuid, name) -> service.repository().resetCooldown(uuid));
-            case "clearquests" -> change(sender, target, "quêtes effacées", (uuid, name) -> service.repository().clearQuests(uuid));
+            case "clearquests" -> change(sender, target, "quêtes effacées", (uuid, name) -> service.quests().clear(uuid, JobQuests.OWNER));
             case "reroll" -> change(sender, target, "changement de quête rendu", (uuid, name) -> service.repository().clearReroll(uuid));
             case "remove" -> {
                 if (args.length < 3 || !args[2].equalsIgnoreCase("confirm")) {
@@ -109,11 +110,10 @@ public class AdminCommand implements TabExecutor {
     }
 
     private void info(CommandSender sender, UUID uuid, String name) {
-        service.progress().flush(uuid);
         var member = service.repository().member(uuid);
         Map<String, JobRepository.JobLevel> levels = service.repository().levels(uuid);
-        List<Quest> quests = service.repository().quests(uuid);
-        int box = service.repository().boxCount(uuid);
+        List<QuestInstance> quests = service.quests().instances(uuid, JobQuests.OWNER);
+        int box = service.quests().boxCount(uuid);
         int rank = service.repository().completedRank(uuid);
         Bukkit.getScheduler().runTask(service.plugin(), () -> {
             messages.send(sender, "admin.info.title", "player", name, "job",
@@ -128,11 +128,12 @@ public class AdminCommand implements TabExecutor {
                         "rank", service.rankName(sender, curve.rank(lvl)), "xp", String.valueOf(level.xp()),
                         "count", String.valueOf(level.completed()), "story", String.valueOf(level.story()));
             });
-            for (Quest quest : quests) {
-                messages.send(sender, "admin.info.quest", "slot", quest.kind(), "tier", quest.tier().id(),
-                        "objectives", fr.eternom.eterJob.module.job.Objective.format(quest.objectives()),
-                        "progress", quest.progress().toString(), "reward", Money.format(quest.reward()),
-                        "state", quest.done() ? "✔" : "…");
+            long now = System.currentTimeMillis();
+            for (QuestInstance quest : quests) {
+                messages.send(sender, "admin.info.quest", "slot", quest.slot(), "tier", JobQuests.tier(quest).id(),
+                        "objectives", quest.quest() + " #" + (quest.stage() + 1),
+                        "progress", quest.progress().toString(), "reward", Money.format(JobQuests.reward(quest)),
+                        "state", quest.done() ? "✔" : quest.expired(now) ? "✗" : "…");
             }
         });
     }
@@ -147,7 +148,7 @@ public class AdminCommand implements TabExecutor {
             messages.send(sender, "admin.quests.kind", "kind", kind.name().toLowerCase(Locale.ROOT), "count", String.valueOf(quests.of(kind).size()));
             quests.of(kind).forEach(template -> messages.send(sender, "admin.quests.line", "tier", template.tier().id(),
                     "reward", Money.format(template.reward()), "rank", template.story() != null ? template.story().id() : template.minRank().id(),
-                    "objectives", template.key()));
+                    "objectives", template.id() + " (" + template.quest().stages().size() + " étape(s))"));
         }
     }
 

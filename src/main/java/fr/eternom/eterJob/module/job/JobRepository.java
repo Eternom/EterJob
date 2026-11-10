@@ -18,8 +18,7 @@ import java.util.UUID;
  * - eterjob_members : le métier de chaque joueur, son dernier changement, son changement de quête du jour, sa série,
  *   ses quêtes d'hier (pour ne pas les retirer), ses gains du jour (plafond), messages coupés ;
  * - eterjob_levels : par joueur et par métier, l'XP, les quêtes accomplies, le dernier rang récompensé, l'histoire ;
- * - eterjob_quests : les quêtes en cours (emplacements 0 à 5), recopiées du répertoire et adaptées au rang ;
- * - eterjob_box : la boîte de récupération (objets d'une quête qui n'ont pas pu être rendus) ;
+ * - eterjob_box : l'ancienne boîte de récupération (reprise une fois par EterQuest, qui garde maintenant les quêtes) ;
  * - eterjob_log : le journal des validations (staff, historique, statistiques, métier le moins pratiqué) ;
  * - eterjob_events : évènements de métier (récompense et XP multipliées).
  * Chaque changement important est UNE requête qui vérifie ses conditions : deux serveurs ne paient jamais deux fois.
@@ -28,13 +27,9 @@ public class JobRepository {
 
     private static final String MEMBERS = "members";
     private static final String LEVELS = "levels";
-    private static final String QUESTS = "quests";
     private static final String BOX = "box";
     private static final String LOG = "log";
     private static final String EVENTS = "events";
-    /** Actions (tuer, casser...) au plus par quête : un compteur en base pour chacune. */
-    public static final int MAX_ACTIONS = 3;
-    private static final List<String> PROGRESS = List.of("progress", "progress_2", "progress_3");
 
     public record Member(String job, long changedAt, long rerollDay, int streak, long streakDay, String recent, boolean quiet,
                          long earnedDay, double earned) {
@@ -74,21 +69,6 @@ public class JobRepository {
                 Column.of("completed", Column.Type.INT).notNull(),
                 Column.of("rank_rewarded", Column.Type.INT).notNull(),
                 Column.of("story", Column.Type.INT).notNull());
-        database.createTable(QUESTS,
-                Column.of("uuid", Column.Type.UUID).primaryKey(),
-                Column.of("slot", Column.Type.INT).primaryKey(),
-                Column.of("day", Column.Type.LONG).notNull(),
-                Column.of("tier", Column.Type.STRING).length(16).notNull(),
-                Column.of("objectives", Column.Type.STRING).length(512).notNull(),
-                Column.of("quest_key", Column.Type.STRING).length(512).notNull(),
-                Column.of("reward", Column.Type.DOUBLE).notNull(),
-                Column.of("xp", Column.Type.INT).notNull(),
-                Column.of("rare", Column.Type.BOOLEAN).notNull(),
-                Column.of("progress", Column.Type.INT).notNull(),
-                Column.of("progress_2", Column.Type.INT).notNull(),
-                Column.of("progress_3", Column.Type.INT).notNull(),
-                Column.of("done", Column.Type.BOOLEAN).notNull(),
-                Column.of("tracked", Column.Type.BOOLEAN).notNull());
         database.createTable(BOX,
                 Column.of("id", Column.Type.LONG).autoIncrement(),
                 Column.of("uuid", Column.Type.UUID).notNull(),
@@ -124,11 +104,10 @@ public class JobRepository {
                 row.get("earned_day") == null ? -1 : row.getLong("earned_day"), row.getDouble("earned")));
     }
 
-    /** Choisit ou change de métier : ses quêtes en cours (de l'ancien métier) sont effacées ; son niveau reste. */
+    /** Choisit ou change de métier (ses quêtes en cours sont effacées par JobService) ; son niveau reste. */
     public void setJob(UUID player, String job, long now) {
         database.execute("INSERT INTO " + database.table(MEMBERS) + " (uuid, job, changed_at) VALUES (?, ?, ?)"
                 + " ON DUPLICATE KEY UPDATE job = ?, changed_at = ?, recent = NULL", player, job, now, job, now);
-        database.delete(QUESTS, Map.of("uuid", player));
         ensureLevel(player, job);
     }
 
@@ -137,7 +116,6 @@ public class JobRepository {
     }
 
     public void removeMember(UUID player) {
-        database.delete(QUESTS, Map.of("uuid", player));
         database.delete(MEMBERS, Map.of("uuid", player));
     }
 
@@ -275,104 +253,20 @@ public class JobRepository {
         return counts;
     }
 
-    // ---------- Quêtes en cours ----------
-
-    public List<Quest> quests(UUID player) {
-        return database.get(QUESTS, Map.of("uuid", player)).stream()
-                .map(row -> new Quest(row.getInt("slot"), row.getLong("day"), Tier.of(row.getString("tier")),
-                        Objective.parse(row.getString("objectives")), row.getDouble("reward"), row.getInt("xp"), row.getBoolean("rare"),
-                        PROGRESS.stream().map(row::getInt).toList(), row.getBoolean("done"), row.getBoolean("tracked"),
-                        row.getString("quest_key")))
-                .filter(quest -> quest.tier() != null && !quest.objectives().isEmpty())
-                .toList();
-    }
-
-    public void saveQuest(UUID player, Quest quest) {
-        Map<String, Object> values = new HashMap<>(Map.of("uuid", player, "slot", quest.slot(), "day", quest.day(),
-                "tier", quest.tier().id(), "objectives", Objective.format(quest.objectives()), "quest_key", quest.key(),
-                "reward", quest.reward(), "xp", quest.xp(), "rare", quest.rare(), "done", quest.done()));
-        values.put("tracked", quest.tracked());
-        for (int action = 0; action < MAX_ACTIONS; action++) {
-            values.put(PROGRESS.get(action), quest.progress(action));
-        }
-        database.set(QUESTS, values, "uuid", "slot");
-    }
-
-    /** Remplace les quêtes du jour (emplacements 0 à 3) ; la semaine et l'histoire restent. */
-    public void replaceDaily(UUID player, List<Quest> quests) {
-        database.execute("DELETE FROM " + database.table(QUESTS) + " WHERE uuid = ? AND slot <= ?", player, JobSettings.BONUS_SLOT);
-        quests.forEach(quest -> saveQuest(player, quest));
-    }
-
-    public void deleteQuest(UUID player, int slot) {
-        database.delete(QUESTS, Map.of("uuid", player, "slot", slot));
-    }
-
-    public void clearQuests(UUID player) {
-        database.delete(QUESTS, Map.of("uuid", player));
-    }
-
-    /** Remplace une quête pas encore faite (changement de quête) : false si elle a été faite entre-temps. */
-    public boolean swapQuest(UUID player, Quest replacement) {
-        return database.execute("UPDATE " + database.table(QUESTS) + " SET tier = ?, objectives = ?, quest_key = ?, reward = ?,"
-                        + " xp = ?, rare = ?, progress = 0, progress_2 = 0, progress_3 = 0"
-                        + " WHERE uuid = ? AND slot = ? AND day = ? AND done = FALSE",
-                replacement.tier().id(), Objective.format(replacement.objectives()), replacement.key(), replacement.reward(),
-                replacement.xp(), replacement.rare(), player, replacement.slot(), replacement.day()) > 0;
-    }
-
-    /** Ajoute de la progression à une action (sans dépasser target) ; ignoré si la quête est faite, changée ou périmée. */
-    public void addProgress(UUID player, int slot, long day, String objectives, int action, int delta, int target) {
-        String column = PROGRESS.get(action);
-        database.execute("UPDATE " + database.table(QUESTS) + " SET " + column + " = LEAST(?, " + column + " + ?)"
-                + " WHERE uuid = ? AND slot = ? AND day = ? AND objectives = ? AND done = FALSE",
-                target, delta, player, slot, day, objectives);
-    }
-
-    /** La quête suivie dans la sidebar (une seule) ; slot -1 = aucune. */
-    public void track(UUID player, int slot) {
-        database.execute("UPDATE " + database.table(QUESTS) + " SET tracked = (slot = ?) WHERE uuid = ?", slot, player);
-    }
+    // ---------- Boîte de récupération (reprise unique vers EterQuest) ----------
 
     /**
-     * Marque la quête faite, seulement si c'est TOUJOURS la même quête (mêmes objectifs : pas changée ailleurs), pas déjà
-     * faite, et chaque action accomplie : deux validations simultanées ne paient qu'une fois. Renvoie la quête telle
-     * qu'en base (récompense comprise) si c'est cet appel qui l'a validée.
+     * Les colis d'avant EterQuest : rendus une fois (uuid, objets) puis effacés. La boîte est maintenant celle d'EterQuest
+     * (/quests box, et le bouton du menu des quêtes).
      */
-    public Optional<Quest> complete(UUID player, Quest quest) {
-        List<Integer> targets = quest.targets();
-        int changed = database.execute("UPDATE " + database.table(QUESTS) + " SET done = TRUE, tracked = FALSE"
-                        + " WHERE uuid = ? AND slot = ? AND day = ? AND objectives = ? AND done = FALSE AND progress >= ?"
-                        + " AND progress_2 >= ? AND progress_3 >= ?",
-                player, quest.slot(), quest.day(), Objective.format(quest.objectives()), targets.get(0), targets.get(1), targets.get(2));
-        if (changed == 0) {
-            return Optional.empty();
+    public List<Map.Entry<UUID, String>> drainOldBox() {
+        List<Map.Entry<UUID, String>> parcels = new java.util.ArrayList<>();
+        for (Row row : database.query("SELECT id, uuid, items FROM " + database.table(BOX) + " ORDER BY id")) {
+            if (database.delete(BOX, Map.of("id", row.getLong("id"))) > 0) {
+                parcels.add(Map.entry(row.getUUID("uuid"), row.getString("items")));
+            }
         }
-        return quests(player).stream().filter(q -> q.slot() == quest.slot()).findFirst();
-    }
-
-    // ---------- Boîte de récupération ----------
-
-    public void deposit(UUID player, String items) {
-        database.insert(BOX, Map.of("uuid", player, "items", items, "created", System.currentTimeMillis()));
-    }
-
-    /** Les colis du joueur : id -> objets (« MATIÈRE quantité;... »). */
-    public Map<Long, String> box(UUID player) {
-        Map<Long, String> box = new LinkedHashMap<>();
-        database.query("SELECT id, items FROM " + database.table(BOX) + " WHERE uuid = ? ORDER BY id", player)
-                .forEach(row -> box.put(row.getLong("id"), row.getString("items")));
-        return box;
-    }
-
-    /** Retire un colis ; true pour le seul appel qui le retire (il le donne). */
-    public boolean take(UUID player, long id) {
-        return database.delete(BOX, Map.of("uuid", player, "id", id)) > 0;
-    }
-
-    public int boxCount(UUID player) {
-        return database.query("SELECT COUNT(*) AS total FROM " + database.table(BOX) + " WHERE uuid = ?", player)
-                .getFirst().getInt("total");
+        return parcels;
     }
 
     // ---------- Journal ----------

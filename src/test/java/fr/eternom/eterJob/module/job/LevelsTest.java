@@ -68,18 +68,4 @@ class LevelsTest {
         assertEquals(1.0, partial.scale(Rank.MAITRE), 1e-9);
     }
 
-    @Test
-    void objectivesParseFormatScaleAndMerge() {
-        List<Objective> objectives = Objective.parse("break:stone:128;ITEM:COAL:16;HARVEST:#Crops:10;ITEM:COAL:4;bad;KILL:ZOMBIE:0");
-        assertEquals(3, objectives.size());
-        assertEquals(new Objective(Objective.Kind.BREAK, "STONE", 128), objectives.getFirst());
-        assertEquals(20, objectives.get(1).amount()); // 16 + 4 regroupés
-        assertEquals("#crops", objectives.get(2).target());
-        assertTrue(objectives.get(2).isGroup());
-        assertEquals("BREAK:STONE:128;ITEM:COAL:20;HARVEST:#crops:10", Objective.format(objectives));
-        assertEquals(141, objectives.getFirst().scaled(1.1).amount());
-        Objective explore = new Objective(Objective.Kind.EXPLORE, "lush caves", 1);
-        assertEquals("LUSH_CAVES", explore.target());
-        assertEquals(1, explore.scaled(1.5).amount());
-    }
 }

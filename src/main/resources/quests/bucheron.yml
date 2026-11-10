@@ -1,135 +1,277 @@
-# Quêtes du métier « bucheron » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+# Quêtes du métier « bucheron » (EterJob), au format d'EterQuest (le moteur des quêtes, partagé avec tout le réseau).
+# Après un changement : AUGMENTER « version » ci-dessous (la plus haute l'emporte partout), puis /eterjob reload.
 #
-# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
-# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
-# Objectif : "TYPE:CIBLE:QUANTITÉ"
-#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
-#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
-#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
-#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
-#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
-#   TRADE    commercer avec un villageois
-# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
-# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
-#
-# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
-# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
-#          (title, text : le lore, en MiniMessage).
+# Chaque quête : un identifiant définitif (minuscules, chiffres, - et _), puis :
+#   meta     ce que la guilde en fait : kind (daily, weekly, rare, story), tier (easy, normal, hard), reward (Heloks,
+#            × la taille du rang), xp (XP de métier ; sinon celle du niveau, config.yml), min-rank (tirée à partir de ce
+#            rang : apprenti, compagnon, artisan, expert, maitre), rank (story : l'étape de ce rang)
+#   name, description   nom et texte (MiniMessage) ; sans nom : « Quête facile », « ✦ Quête rare »...
+#   requires conditions pour être tirée : « reputation <pnj> <min> » (réputation × ratio du PNJ), « done <quête> »...
+#   reputation          réputation gagnée à la fin (1 par défaut ici)
+#   objectives (une étape) ou stages (plusieurs : id, text, objectives, turn-in, say, time-limit, branches...)
+# Objectif : "TYPE:CIBLE:QUANTITÉ" ou {type, target, amount, where, optional, scale, text}
+#   break harvest kill fish craft smelt breed explore enchant trade : actions du jeu (cible, ANY, ou un groupe
+#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: fermier) ;
+#   signal : ce que fait le village (eterhub:harvest {crop, quality, zone}, eterhub:fish {fish, rarity, grams}...)
+#   where : {time: day|night, weather: rain|thunder|clear, biomes: [...], dimension: nether, min-y, max-y}
+#   optional: true -> objectif bonus (pas nécessaire) ; scale: false -> la quantité ne grandit pas avec le rang
+# turn-in : où se rend la dernière étape. Par défaut ici : au donneur de quêtes (giver), ou à distance (remote, /job)
+#   s'il n'y a pas d'objets à remettre ; npc:<pnj> : chez ce PNJ (ex : au village).
+# Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
+# structure : shulkers, gardien ancien, brutes piglins).
 
-daily:
-  - tier: easy
-    reward: 120
-    objectives: [ "BREAK:OAK_LOG:48", "ITEM:OAK_PLANKS:64" ]
-  - tier: easy
-    reward: 120
-    objectives: [ "BREAK:BIRCH_LOG:48", "ITEM:BIRCH_LOG:16" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "BREAK:SPRUCE_LOG:48", "ITEM:CHARCOAL:16" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "BREAK:OAK_LOG:32", "ITEM:STICK:64", "ITEM:CRAFTING_TABLE:4" ]
-  - tier: easy
-    reward: 140
-    objectives: [ "BREAK:OAK_LEAVES:64", "ITEM:APPLE:2", "ITEM:OAK_SAPLING:16" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:JUNGLE_LOG:64", "ITEM:JUNGLE_LOG:32", "ITEM:COCOA_BEANS:8" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:ACACIA_LOG:64", "ITEM:ACACIA_PLANKS:64", "ITEM:ACACIA_FENCE:16" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "BREAK:DARK_OAK_LOG:64", "ITEM:DARK_OAK_LOG:32", "ITEM:APPLE:4" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:SPRUCE_LOG:64", "BREAK:BIRCH_LOG:32", "ITEM:BARREL:6" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "BREAK:OAK_LOG:64", "ITEM:CHARCOAL:32", "ITEM:CHEST:8" ]
-  - tier: normal
-    reward: 210
-    objectives: [ "BREAK:MANGROVE_LOG:48", "BREAK:MANGROVE_ROOTS:16", "ITEM:MANGROVE_PROPAGULE:8" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "BREAK:CHERRY_LOG:64", "ITEM:CHERRY_LOG:48", "ITEM:CHERRY_SAPLING:8" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "BREAK:PALE_OAK_LOG:64", "ITEM:PALE_OAK_LOG:32", "ITEM:PALE_MOSS_BLOCK:16" ]
-  - tier: hard
-    reward: 290
+version: 1
+defaults:
+  category: job
+  tags: [bucheron]
+  turn-in: [giver, remote]
+  reputation: 1
+  meta: {job: bucheron}
+
+quests:
+
+  # ---------- Quêtes du jour (une par niveau chaque jour ; jamais celles d'hier) ----------
+  bucheron-jour-01:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "BREAK:OAK_LOG:48", "DELIVER:OAK_PLANKS:64" ]
+  bucheron-jour-02:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "BREAK:BIRCH_LOG:48", "DELIVER:BIRCH_LOG:16" ]
+  bucheron-jour-03:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREAK:SPRUCE_LOG:48", "DELIVER:CHARCOAL:16" ]
+  bucheron-jour-04:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREAK:OAK_LOG:32", "DELIVER:STICK:64", "DELIVER:CRAFTING_TABLE:4" ]
+  bucheron-jour-05:
+    meta: {kind: daily, tier: easy, reward: 140}
+    objectives: [ "BREAK:OAK_LEAVES:64", "DELIVER:APPLE:2", "DELIVER:OAK_SAPLING:16" ]
+  bucheron-jour-06:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:JUNGLE_LOG:64", "DELIVER:JUNGLE_LOG:32", "DELIVER:COCOA_BEANS:8" ]
+  bucheron-jour-07:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:ACACIA_LOG:64", "DELIVER:ACACIA_PLANKS:64", "DELIVER:ACACIA_FENCE:16" ]
+  bucheron-jour-08:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREAK:DARK_OAK_LOG:64", "DELIVER:DARK_OAK_LOG:32", "DELIVER:APPLE:4" ]
+  bucheron-jour-09:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:SPRUCE_LOG:64", "BREAK:BIRCH_LOG:32", "DELIVER:BARREL:6" ]
+  bucheron-jour-10:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREAK:OAK_LOG:64", "DELIVER:CHARCOAL:32", "DELIVER:CHEST:8" ]
+  bucheron-jour-11:
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives: [ "BREAK:MANGROVE_LOG:48", "BREAK:MANGROVE_ROOTS:16", "DELIVER:MANGROVE_PROPAGULE:8" ]
+  bucheron-jour-12:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "BREAK:CHERRY_LOG:64", "DELIVER:CHERRY_LOG:48", "DELIVER:CHERRY_SAPLING:8" ]
+  bucheron-jour-13:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "BREAK:PALE_OAK_LOG:64", "DELIVER:PALE_OAK_LOG:32", "DELIVER:PALE_MOSS_BLOCK:16" ]
+  bucheron-jour-14:
+    meta: {kind: daily, tier: hard, reward: 290}
     objectives: [ "BREAK:DARK_OAK_LOG:64", "BREAK:JUNGLE_LOG:64", "BREAK:ACACIA_LOG:64" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "BREAK:CRIMSON_STEM:48", "BREAK:WARPED_STEM:48", "ITEM:SHROOMLIGHT:8" ]
-  - tier: hard
-    reward: 280
-    objectives: [ "BREAK:SPRUCE_LOG:128", "ITEM:SPRUCE_LOG:64", "ITEM:CAMPFIRE:4" ]
-  - tier: hard
-    reward: 310
-    objectives: [ "BREAK:OAK_LOG:64", "BREAK:BIRCH_LOG:64", "ITEM:BOOKSHELF:6" ]
-  - tier: easy
-    reward: 130
+  bucheron-jour-15:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "BREAK:CRIMSON_STEM:48", "BREAK:WARPED_STEM:48", "DELIVER:SHROOMLIGHT:8" ]
+  bucheron-jour-16:
+    meta: {kind: daily, tier: hard, reward: 280}
+    objectives: [ "BREAK:SPRUCE_LOG:128", "DELIVER:SPRUCE_LOG:64", "DELIVER:CAMPFIRE:4" ]
+  bucheron-jour-17:
+    meta: {kind: daily, tier: hard, reward: 310}
+    objectives: [ "BREAK:OAK_LOG:64", "BREAK:BIRCH_LOG:64", "DELIVER:BOOKSHELF:6" ]
+  bucheron-jour-18:
+    meta: {kind: daily, tier: easy, reward: 130}
     objectives: [ "BREAK:#logs:48", "CRAFT:OAK_PLANKS:64" ]
-  - tier: normal
-    reward: 200
+  bucheron-jour-19:
+    meta: {kind: daily, tier: normal, reward: 200}
     objectives: [ "SMELT:CHARCOAL:32", "CRAFT:CHEST:8" ]
-  - tier: hard
-    reward: 300
-    min-rank: artisan
-    objectives: [ "EXPLORE:CHERRY_GROVE:1", "BREAK:CHERRY_LOG:96", "ITEM:CHERRY_LEAVES:16" ]
+  bucheron-jour-20:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: artisan}
+    objectives: [ "EXPLORE:CHERRY_GROVE:1", "BREAK:CHERRY_LOG:96", "DELIVER:CHERRY_LEAVES:16" ]
 
-weekly:
-  - reward: 900
-    xp: 200
-    objectives: [ "BREAK:#logs:1500", "ITEM:BOOKSHELF:8" ]
-  - reward: 950
-    xp: 200
+  # ---------- Quêtes de la semaine (longues, bien payées) ----------
+  bucheron-semaine-01:
+    reputation: 3
+    meta: {kind: weekly, reward: 900, xp: 200}
+    objectives: [ "BREAK:#logs:1500", "DELIVER:BOOKSHELF:8" ]
+  bucheron-semaine-02:
+    reputation: 3
+    meta: {kind: weekly, reward: 950, xp: 200}
     objectives: [ "BREAK:DARK_OAK_LOG:400", "CRAFT:DARK_OAK_PLANKS:256" ]
-  - reward: 1000
-    xp: 220
-    min-rank: artisan
-    objectives: [ "BREAK:CRIMSON_STEM:200", "BREAK:WARPED_STEM:200", "ITEM:SHROOMLIGHT:16" ]
+  bucheron-semaine-03:
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 220, min-rank: artisan}
+    objectives: [ "BREAK:CRIMSON_STEM:200", "BREAK:WARPED_STEM:200", "DELIVER:SHROOMLIGHT:16" ]
 
-rare:
-  - tier: normal
-    reward: 300
+  # ---------- Quêtes rares (une petite chance de remplacer une quête du jour) ----------
+  bucheron-rare-01:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
     objectives: [ "EXPLORE:PALE_GARDEN:1", "BREAK:PALE_OAK_LOG:64" ]
-  - tier: hard
-    reward: 450
-    objectives: [ "EXPLORE:BAMBOO_JUNGLE:1", "BREAK:BAMBOO:128", "ITEM:SCAFFOLDING:16" ]
-  - tier: normal
-    reward: 300
+  bucheron-rare-02:
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450}
+    objectives: [ "EXPLORE:BAMBOO_JUNGLE:1", "BREAK:BAMBOO:128", "DELIVER:SCAFFOLDING:16" ]
+  bucheron-rare-03:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
     objectives: [ "EXPLORE:MANGROVE_SWAMP:1", "BREAK:MANGROVE_LOG:64" ]
 
-story:
-  - rank: apprenti
-    title: "<primary>La première hache"
-    text: [ "<info>Maëlle, la doyenne des bûcherons, t'observe.", "<info>« Un arbre se respecte. Coupe-le, puis replante. »" ]
-    reward: 300
-    xp: 150
-    objectives: [ "BREAK:OAK_LOG:128", "ITEM:OAK_SAPLING:16" ]
-  - rank: compagnon
-    title: "<primary>Le charbon de bois"
-    text: [ "<info>L'hiver approche et les foyers de la guilde sont vides." ]
-    reward: 500
-    xp: 200
+  # ---------- L'histoire du métier : une étape par rang ----------
+  bucheron-histoire-apprenti:
+    name: "<primary>La première hache"
+    description: [ "<info>Maëlle, la doyenne des bûcherons, t'observe.", "<info>« Un arbre se respecte. Coupe-le, puis replante. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 300, xp: 150, rank: apprenti}
+    objectives: [ "BREAK:OAK_LOG:128", "DELIVER:OAK_SAPLING:16" ]
+  bucheron-histoire-compagnon:
+    name: "<primary>Le charbon de bois"
+    description: [ "<info>L'hiver approche et les foyers de la guilde sont vides." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 500, xp: 200, rank: compagnon}
     objectives: [ "BREAK:#logs:256", "SMELT:CHARCOAL:64" ]
-  - rank: artisan
-    title: "<primary>Les forêts lointaines"
-    text: [ "<info>Maëlle te parle d'arbres aux feuilles roses, au-delà des montagnes." ]
-    reward: 800
-    xp: 300
-    objectives: [ "EXPLORE:CHERRY_GROVE:1", "BREAK:CHERRY_LOG:128", "ITEM:CHERRY_SAPLING:8" ]
-  - rank: expert
-    title: "<primary>Les bois du Nether"
-    text: [ "<info>Même l'enfer a ses forêts.", "<info>« Prends garde aux Piglins. »" ]
-    reward: 1200
-    xp: 400
+  bucheron-histoire-artisan:
+    name: "<primary>Les forêts lointaines"
+    description: [ "<info>Maëlle te parle d'arbres aux feuilles roses, au-delà des montagnes." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 800, xp: 300, rank: artisan}
+    objectives: [ "EXPLORE:CHERRY_GROVE:1", "BREAK:CHERRY_LOG:128", "DELIVER:CHERRY_SAPLING:8" ]
+  bucheron-histoire-expert:
+    name: "<primary>Les bois du Nether"
+    description: [ "<info>Même l'enfer a ses forêts.", "<info>« Prends garde aux Piglins. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 1200, xp: 400, rank: expert}
     objectives: [ "BREAK:CRIMSON_STEM:256", "BREAK:WARPED_STEM:256" ]
-  - rank: maitre
-    title: "<primary>Le gardien des forêts"
-    text: [ "<info>Maëlle te confie sa hache.", "<info>« Les forêts du monde sont à toi, désormais. »" ]
-    reward: 2000
-    xp: 500
-    objectives: [ "BREAK:#logs:2000", "ITEM:BOOKSHELF:16" ]
+  bucheron-histoire-maitre:
+    name: "<primary>Le gardien des forêts"
+    description: [ "<info>Maëlle te confie sa hache.", "<info>« Les forêts du monde sont à toi, désormais. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 2000, xp: 500, rank: maitre}
+    objectives: [ "BREAK:#logs:2000", "DELIVER:BOOKSHELF:16" ]
+
+  # ---------- Nouvelles quêtes du jour ----------
+  bucheron-jour-21:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "BREAK:BIRCH_LOG:32", "CRAFT:BIRCH_PLANKS:64", "DELIVER:BOWL:8" ]
+  bucheron-jour-22:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREAK:#logs:40", "CRAFT:LADDER:16" ]
+  bucheron-jour-23:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREAK:OAK_LOG:40", "CRAFT:OAK_FENCE:24", "DELIVER:OAK_FENCE_GATE:2" ]
+  bucheron-jour-24:
+    name: "<primary>La forêt sombre"
+    description: [ "<info>Les chênes noirs ne poussent que là où la lumière ne passe pas." ]
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: break, target: DARK_OAK_LOG, amount: 64, where: {biomes: [dark_forest]}}
+      - {type: deliver, target: DARK_OAK_SAPLING, amount: 8}
+  bucheron-jour-25:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREAK:SPRUCE_LOG:64", "CRAFT:SPRUCE_BOAT:2", "DELIVER:SPRUCE_TRAPDOOR:8" ]
+  bucheron-jour-26:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREAK:#logs:96", "CRAFT:CHEST:6", "CRAFT:BARREL:4" ]
+  bucheron-jour-27:
+    name: "<primary>Le bûcheron de nuit"
+    meta: {kind: daily, tier: normal, reward: 220}
+    objectives:
+      - {type: break, target: "#logs", amount: 80, where: {time: night}}
+      - {type: deliver, target: TORCH, amount: 32}
+  bucheron-jour-28:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "BREAK:#logs:200", "SMELT:CHARCOAL:48", "DELIVER:CAMPFIRE:6" ]
+  bucheron-jour-29:
+    name: "<primary>Les cerisiers en fleur"
+    meta: {kind: daily, tier: hard, reward: 310, min-rank: compagnon}
+    objectives:
+      - {type: break, target: CHERRY_LOG, amount: 64, where: {biomes: [cherry_grove]}}
+      - {type: break, target: CHERRY_LEAVES, amount: 48}
+      - {type: deliver, target: PINK_PETALS, amount: 16}
+  bucheron-jour-30:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "BREAK:JUNGLE_LOG:96", "BREAK:BAMBOO:64", "CRAFT:SCAFFOLDING:24" ]
+
+  # ---------- Quêtes rares spéciales ----------
+  bucheron-rare-04:
+    name: "<light_purple>La scierie"
+    description: [ "<info>La scierie de la guilde tourne à plein : il lui faut du bois, beaucoup de bois." ]
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 330}
+    stages:
+      - id: abattage
+        text: "<info>Abats les arbres"
+        objectives: [ "BREAK:#logs:160" ]
+      - id: sciage
+        text: "<info>Scie les planches"
+        objectives: [ "CRAFT:OAK_PLANKS:128", "CRAFT:STICK:64" ]
+      - id: livraison
+        text: "<info>Livre la commande"
+        objectives: [ "DELIVER:OAK_PLANKS:128", "DELIVER:OAK_STAIRS:32" ]
+  bucheron-rare-05:
+    name: "<light_purple>L'incendie de forêt"
+    description: [ "<info>Le feu gagne : coupe un coupe-feu avant qu'il n'arrive !" ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 460}
+    stages:
+      - id: alerte
+        text: "<info>Prends ta hache : il faut une hache neuve"
+        objectives: [ "CRAFT:IRON_AXE:1" ]
+      - id: coupe-feu
+        text: "<info>Abats 120 bûches en 6 minutes !"
+        time-limit: 360
+        objectives: [ "BREAK:#logs:120" ]
+  bucheron-rare-06:
+    name: "<light_purple>Le jardin pâle"
+    description: [ "<info>Un bois étrange, gris et silencieux... et quelque chose y grince la nuit." ]
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 500, min-rank: compagnon}
+    requires: [ "reputation eternpc:bucheron 15" ]
+    objectives:
+      - {type: explore, target: PALE_GARDEN, amount: 1}
+      - {type: break, target: PALE_OAK_LOG, amount: 96}
+      - {type: deliver, target: PALE_HANGING_MOSS, amount: 16}
+      - {type: deliver, target: RESIN_CLUMP, amount: 4, optional: true, scale: false}
+  bucheron-rare-07:
+    name: "<light_purple>La bibliothèque"
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 340}
+    stages:
+      - id: bois
+        text: "<info>Coupe le bois"
+        objectives: [ "BREAK:OAK_LOG:64", "BREAK:BIRCH_LOG:64" ]
+      - id: rayonnages
+        text: "<info>Fabrique les rayonnages"
+        objectives: [ "CRAFT:BOOKSHELF:8", "CRAFT:LECTERN:2" ]
+      - id: livraison
+        text: "<info>Livre-les à la guilde"
+        objectives: [ "DELIVER:BOOKSHELF:6", "DELIVER:LECTERN:1" ]
+
+  # ---------- Nouvelles quêtes de la semaine ----------
+  bucheron-semaine-04:
+    name: "<gold>Le tour des forêts"
+    reputation: 3
+    meta: {kind: weekly, reward: 1050, xp: 220}
+    objectives:
+      - {type: break, target: SPRUCE_LOG, amount: 200, where: {biomes: [taiga, snowy_taiga, old_growth_spruce_taiga, old_growth_pine_taiga]}}
+      - {type: break, target: BIRCH_LOG, amount: 200, where: {biomes: [birch_forest, old_growth_birch_forest]}}
+      - {type: break, target: JUNGLE_LOG, amount: 200, where: {biomes: [jungle, sparse_jungle, bamboo_jungle]}}
+  bucheron-semaine-05:
+    name: "<gold>Le charpentier"
+    reputation: 3
+    meta: {kind: weekly, reward: 950, xp: 200}
+    stages:
+      - id: bois
+        text: "<info>Rassemble le bois"
+        objectives: [ "BREAK:#logs:1200" ]
+      - id: charpente
+        text: "<info>Livre la charpente"
+        objectives: [ "DELIVER:OAK_STAIRS:64", "DELIVER:SPRUCE_SLAB:64", "DELIVER:OAK_DOOR:8" ]

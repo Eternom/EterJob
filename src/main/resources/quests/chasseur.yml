@@ -1,135 +1,277 @@
-# Quêtes du métier « chasseur » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+# Quêtes du métier « chasseur » (EterJob), au format d'EterQuest (le moteur des quêtes, partagé avec tout le réseau).
+# Après un changement : AUGMENTER « version » ci-dessous (la plus haute l'emporte partout), puis /eterjob reload.
 #
-# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
-# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
-# Objectif : "TYPE:CIBLE:QUANTITÉ"
-#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
-#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
-#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
-#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
-#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
-#   TRADE    commercer avec un villageois
-# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
-# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
-#
-# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
-# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
-#          (title, text : le lore, en MiniMessage).
+# Chaque quête : un identifiant définitif (minuscules, chiffres, - et _), puis :
+#   meta     ce que la guilde en fait : kind (daily, weekly, rare, story), tier (easy, normal, hard), reward (Heloks,
+#            × la taille du rang), xp (XP de métier ; sinon celle du niveau, config.yml), min-rank (tirée à partir de ce
+#            rang : apprenti, compagnon, artisan, expert, maitre), rank (story : l'étape de ce rang)
+#   name, description   nom et texte (MiniMessage) ; sans nom : « Quête facile », « ✦ Quête rare »...
+#   requires conditions pour être tirée : « reputation <pnj> <min> » (réputation × ratio du PNJ), « done <quête> »...
+#   reputation          réputation gagnée à la fin (1 par défaut ici)
+#   objectives (une étape) ou stages (plusieurs : id, text, objectives, turn-in, say, time-limit, branches...)
+# Objectif : "TYPE:CIBLE:QUANTITÉ" ou {type, target, amount, where, optional, scale, text}
+#   break harvest kill fish craft smelt breed explore enchant trade : actions du jeu (cible, ANY, ou un groupe
+#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: fermier) ;
+#   signal : ce que fait le village (eterhub:harvest {crop, quality, zone}, eterhub:fish {fish, rarity, grams}...)
+#   where : {time: day|night, weather: rain|thunder|clear, biomes: [...], dimension: nether, min-y, max-y}
+#   optional: true -> objectif bonus (pas nécessaire) ; scale: false -> la quantité ne grandit pas avec le rang
+# turn-in : où se rend la dernière étape. Par défaut ici : au donneur de quêtes (giver), ou à distance (remote, /job)
+#   s'il n'y a pas d'objets à remettre ; npc:<pnj> : chez ce PNJ (ex : au village).
+# Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
+# structure : shulkers, gardien ancien, brutes piglins).
 
-daily:
-  - tier: easy
-    reward: 120
-    objectives: [ "KILL:ZOMBIE:15", "ITEM:ROTTEN_FLESH:16" ]
-  - tier: easy
-    reward: 120
-    objectives: [ "KILL:SKELETON:12", "ITEM:BONE:16" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "KILL:SPIDER:10", "ITEM:STRING:16" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "KILL:ANY:30", "ITEM:ARROW:32" ]
-  - tier: easy
-    reward: 140
+version: 1
+defaults:
+  category: job
+  tags: [chasseur]
+  turn-in: [giver, remote]
+  reputation: 1
+  meta: {job: chasseur}
+
+quests:
+
+  # ---------- Quêtes du jour (une par niveau chaque jour ; jamais celles d'hier) ----------
+  chasseur-jour-01:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "KILL:ZOMBIE:15", "DELIVER:ROTTEN_FLESH:16" ]
+  chasseur-jour-02:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "KILL:SKELETON:12", "DELIVER:BONE:16" ]
+  chasseur-jour-03:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "KILL:SPIDER:10", "DELIVER:STRING:16" ]
+  chasseur-jour-04:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "KILL:ANY:30", "DELIVER:ARROW:32" ]
+  chasseur-jour-05:
+    meta: {kind: daily, tier: easy, reward: 140}
     objectives: [ "KILL:ZOMBIE:10", "KILL:SKELETON:10", "KILL:SPIDER:10" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "KILL:CREEPER:10", "ITEM:GUNPOWDER:16", "ITEM:TNT:2" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "KILL:DROWNED:10", "KILL:HUSK:10", "ITEM:ROTTEN_FLESH:32" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "KILL:SPIDER:12", "ITEM:SPIDER_EYE:8", "ITEM:FERMENTED_SPIDER_EYE:2" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "KILL:SLIME:15", "ITEM:SLIME_BALL:12" ]
-  - tier: normal
-    reward: 210
-    objectives: [ "KILL:ANY:60", "KILL:CREEPER:6", "ITEM:BONE_MEAL:32" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "KILL:STRAY:8", "ITEM:ARROW:64", "ITEM:BOW:1" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "KILL:ENDERMAN:10", "ITEM:ENDER_PEARL:8", "ITEM:ENDER_EYE:2" ]
-  - tier: hard
-    reward: 310
-    objectives: [ "KILL:BLAZE:12", "ITEM:BLAZE_ROD:8", "ITEM:BLAZE_POWDER:8" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "KILL:WITHER_SKELETON:8", "ITEM:COAL:32", "ITEM:BONE:32" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "KILL:WITCH:3", "KILL:PHANTOM:4", "ITEM:PHANTOM_MEMBRANE:4" ]
-  - tier: hard
-    reward: 320
-    objectives: [ "KILL:GUARDIAN:10", "ITEM:PRISMARINE_SHARD:16", "ITEM:PRISMARINE_CRYSTALS:8" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "KILL:MAGMA_CUBE:12", "KILL:GHAST:2", "ITEM:MAGMA_CREAM:8", "ITEM:GHAST_TEAR:1" ]
-  - tier: easy
-    reward: 130
+  chasseur-jour-06:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "KILL:CREEPER:10", "DELIVER:GUNPOWDER:16", "DELIVER:TNT:2" ]
+  chasseur-jour-07:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "KILL:DROWNED:10", "KILL:HUSK:10", "DELIVER:ROTTEN_FLESH:32" ]
+  chasseur-jour-08:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "KILL:SPIDER:12", "DELIVER:SPIDER_EYE:8", "DELIVER:FERMENTED_SPIDER_EYE:2" ]
+  chasseur-jour-09:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "KILL:SLIME:15", "DELIVER:SLIME_BALL:12" ]
+  chasseur-jour-10:
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives: [ "KILL:ANY:60", "KILL:CREEPER:6", "DELIVER:BONE_MEAL:32" ]
+  chasseur-jour-11:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "KILL:STRAY:8", "DELIVER:ARROW:64", "DELIVER:BOW:1" ]
+  chasseur-jour-12:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "KILL:ENDERMAN:10", "DELIVER:ENDER_PEARL:8", "DELIVER:ENDER_EYE:2" ]
+  chasseur-jour-13:
+    meta: {kind: daily, tier: hard, reward: 310}
+    objectives: [ "KILL:BLAZE:12", "DELIVER:BLAZE_ROD:8", "DELIVER:BLAZE_POWDER:8" ]
+  chasseur-jour-14:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "KILL:WITHER_SKELETON:8", "DELIVER:COAL:32", "DELIVER:BONE:32" ]
+  chasseur-jour-15:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "KILL:WITCH:3", "KILL:PHANTOM:4", "DELIVER:PHANTOM_MEMBRANE:4" ]
+  chasseur-jour-16:
+    meta: {kind: daily, tier: hard, reward: 320}
+    objectives: [ "KILL:GUARDIAN:10", "DELIVER:PRISMARINE_SHARD:16", "DELIVER:PRISMARINE_CRYSTALS:8" ]
+  chasseur-jour-17:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "KILL:MAGMA_CUBE:12", "KILL:GHAST:2", "DELIVER:MAGMA_CREAM:8", "DELIVER:GHAST_TEAR:1" ]
+  chasseur-jour-18:
+    meta: {kind: daily, tier: easy, reward: 130}
     objectives: [ "KILL:ANY:25", "CRAFT:ARROW:32" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "KILL:PILLAGER:6", "ITEM:CROSSBOW:1" ]
-  - tier: hard
-    reward: 300
-    min-rank: artisan
-    objectives: [ "KILL:PIGLIN_BRUTE:2", "KILL:HOGLIN:6", "ITEM:COOKED_PORKCHOP:16" ]
+  chasseur-jour-19:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "KILL:PILLAGER:6", "DELIVER:CROSSBOW:1" ]
+  chasseur-jour-20:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: artisan}
+    objectives: [ "KILL:PIGLIN:8", "KILL:HOGLIN:6", "DELIVER:COOKED_PORKCHOP:16" ]
 
-weekly:
-  - reward: 900
-    xp: 200
-    objectives: [ "KILL:ANY:500", "ITEM:BONE_BLOCK:16" ]
-  - reward: 950
-    xp: 200
-    objectives: [ "KILL:ENDERMAN:60", "ITEM:ENDER_EYE:8" ]
-  - reward: 1000
-    xp: 220
-    min-rank: artisan
-    objectives: [ "KILL:WITHER_SKELETON:40", "KILL:BLAZE:40", "ITEM:WITHER_SKELETON_SKULL:1" ]
+  # ---------- Quêtes de la semaine (longues, bien payées) ----------
+  chasseur-semaine-01:
+    reputation: 3
+    meta: {kind: weekly, reward: 900, xp: 200}
+    objectives: [ "KILL:ANY:500", "DELIVER:BONE_BLOCK:16" ]
+  chasseur-semaine-02:
+    reputation: 3
+    meta: {kind: weekly, reward: 950, xp: 200}
+    objectives: [ "KILL:ENDERMAN:60", "DELIVER:ENDER_EYE:8" ]
+  chasseur-semaine-03:
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 220, min-rank: artisan}
+    objectives: [ "KILL:WITHER_SKELETON:40", "KILL:BLAZE:40", "DELIVER:WITHER_SKELETON_SKULL:1" ]
 
-rare:
-  - tier: hard
-    reward: 450
-    objectives: [ "KILL:EVOKER:1", "ITEM:TOTEM_OF_UNDYING:1" ]
-  - tier: normal
-    reward: 300
-    objectives: [ "KILL:BREEZE:4", "ITEM:BREEZE_ROD:4" ]
-  - tier: normal
-    reward: 300
-    objectives: [ "KILL:WITCH:4", "ITEM:GLOWSTONE_DUST:16" ]
+  # ---------- Quêtes rares (une petite chance de remplacer une quête du jour) ----------
+  chasseur-rare-01:
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450}
+    objectives: [ "KILL:EVOKER:1", "DELIVER:TOTEM_OF_UNDYING:1" ]
+  chasseur-rare-02:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
+    objectives: [ "KILL:BOGGED:4", "DELIVER:BREEZE_ROD:4" ]
+  chasseur-rare-03:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
+    objectives: [ "KILL:WITCH:4", "DELIVER:GLOWSTONE_DUST:16" ]
 
-story:
-  - rank: apprenti
-    title: "<primary>La première traque"
-    text: [ "<info>Le vieux veneur Garrick aiguise sa lame.", "<info>« La nuit, les monstres sortent. Montre-moi que tu n'as pas peur. »" ]
-    reward: 300
-    xp: 150
+  # ---------- L'histoire du métier : une étape par rang ----------
+  chasseur-histoire-apprenti:
+    name: "<primary>La première traque"
+    description: [ "<info>Le vieux veneur Garrick aiguise sa lame.", "<info>« La nuit, les monstres sortent. Montre-moi que tu n'as pas peur. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 300, xp: 150, rank: apprenti}
     objectives: [ "KILL:ZOMBIE:30", "KILL:SKELETON:30" ]
-  - rank: compagnon
-    title: "<primary>Les toiles"
-    text: [ "<info>Des araignées infestent les mines abandonnées." ]
-    reward: 500
-    xp: 200
-    objectives: [ "KILL:SPIDER:40", "KILL:CAVE_SPIDER:20", "ITEM:STRING:64" ]
-  - rank: artisan
-    title: "<primary>La forteresse"
-    text: [ "<info>Une forteresse du Nether abrite des squelettes noirs.", "<info>Garrick veut leurs crânes." ]
-    reward: 800
-    xp: 300
+  chasseur-histoire-compagnon:
+    name: "<primary>Les toiles"
+    description: [ "<info>Des araignées infestent les mines abandonnées." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 500, xp: 200, rank: compagnon}
+    objectives: [ "KILL:SPIDER:40", "KILL:CAVE_SPIDER:20", "DELIVER:STRING:64" ]
+  chasseur-histoire-artisan:
+    name: "<primary>La forteresse"
+    description: [ "<info>Une forteresse du Nether abrite des squelettes noirs.", "<info>Garrick veut leurs crânes." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 800, xp: 300, rank: artisan}
     objectives: [ "KILL:WITHER_SKELETON:30", "KILL:BLAZE:20" ]
-  - rank: expert
-    title: "<primary>Les pillards"
-    text: [ "<info>Des pillards menacent les villages de la région." ]
-    reward: 1200
-    xp: 400
+  chasseur-histoire-expert:
+    name: "<primary>Les pillards"
+    description: [ "<info>Des pillards menacent les villages de la région." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 1200, xp: 400, rank: expert}
     objectives: [ "KILL:PILLAGER:30", "KILL:VINDICATOR:10", "KILL:EVOKER:2" ]
-  - rank: maitre
-    title: "<primary>Le grand veneur"
-    text: [ "<info>Garrick te remet son cor de chasse.", "<info>« Que tous les monstres du monde entendent ton nom. »" ]
-    reward: 2000
-    xp: 500
-    objectives: [ "KILL:ANY:1500", "ITEM:WITHER_SKELETON_SKULL:2" ]
+  chasseur-histoire-maitre:
+    name: "<primary>Le grand veneur"
+    description: [ "<info>Garrick te remet son cor de chasse.", "<info>« Que tous les monstres du monde entendent ton nom. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 2000, xp: 500, rank: maitre}
+    objectives: [ "KILL:ANY:1500", "DELIVER:WITHER_SKELETON_SKULL:2" ]
+
+  # ---------- Nouvelles quêtes du jour ----------
+  chasseur-jour-21:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "KILL:CREEPER:6", "DELIVER:GUNPOWDER:12" ]
+  chasseur-jour-22:
+    name: "<primary>La garde de nuit"
+    description: [ "<info>Quand le soleil se couche, les chasseurs se lèvent." ]
+    meta: {kind: daily, tier: easy, reward: 140}
+    objectives:
+      - {type: kill, target: ANY, amount: 25, where: {time: night}}
+  chasseur-jour-23:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "KILL:HUSK:8", "KILL:DROWNED:8", "DELIVER:COPPER_INGOT:8" ]
+  chasseur-jour-24:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "KILL:BOGGED:6", "DELIVER:ARROW:32", "CRAFT:BOW:1" ]
+  chasseur-jour-25:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "KILL:CAVE_SPIDER:10", "DELIVER:STRING:32", "DELIVER:COBWEB:2" ]
+  chasseur-jour-26:
+    name: "<primary>Les cavernes"
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: kill, target: ANY, amount: 40, where: {max-y: 20}}
+      - {type: deliver, target: BONE_MEAL, amount: 32}
+  chasseur-jour-27:
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives: [ "KILL:ZOMBIFIED_PIGLIN:15", "DELIVER:GOLD_NUGGET:32" ]
+  chasseur-jour-28:
+    meta: {kind: daily, tier: hard, reward: 310}
+    objectives: [ "KILL:PIGLIN:10", "KILL:HOGLIN:4", "DELIVER:GOLD_INGOT:8" ]
+  chasseur-jour-29:
+    name: "<primary>L'orage"
+    description: [ "<info>Les éclairs réveillent les monstres... et les chasseurs les plus braves." ]
+    meta: {kind: daily, tier: hard, reward: 320}
+    objectives:
+      - {type: kill, target: ANY, amount: 40, where: {weather: thunder}}
+      - {type: kill, target: CREEPER, amount: 4, where: {weather: thunder}}
+  chasseur-jour-30:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: compagnon}
+    objectives:
+      - {type: kill, target: ENDERMAN, amount: 12, where: {dimension: the_end}}
+      - {type: deliver, target: CHORUS_FRUIT, amount: 16}
+      - {type: deliver, target: SHULKER_SHELL, amount: 2}
+
+  # ---------- Quêtes rares spéciales ----------
+  chasseur-rare-04:
+    name: "<light_purple>La nuit des morts"
+    description: [ "<info>Une horde se lève du cimetière. Tiens jusqu'au bout !" ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 460}
+    stages:
+      - id: preparation
+        text: "<info>Prépare tes armes"
+        objectives: [ "CRAFT:ARROW:64" ]
+      - id: horde
+        text: "<info>Tue 30 morts-vivants en 7 minutes, la nuit !"
+        time-limit: 420
+        objectives:
+          - {type: kill, target: ZOMBIE, amount: 20, where: {time: night}}
+          - {type: kill, target: SKELETON, amount: 10, where: {time: night}}
+  chasseur-rare-05:
+    name: "<light_purple>Le trophée"
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450}
+    stages:
+      - id: traque
+        text: "<info>Traque les créatures du Nether"
+        objectives: [ "KILL:BLAZE:10", "KILL:WITHER_SKELETON:10" ]
+      - id: trophee
+        text: "<info>Rapporte le trophée"
+        objectives:
+          - {type: deliver, target: BLAZE_ROD, amount: 8}
+          - {type: deliver, target: WITHER_SKELETON_SKULL, amount: 1, optional: true, scale: false}
+  chasseur-rare-06:
+    name: "<light_purple>Les pillards du nord"
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 520, min-rank: compagnon}
+    requires: [ "reputation eternpc:chasseur 15" ]
+    objectives: [ "KILL:PILLAGER:12", "KILL:VINDICATOR:4", "KILL:RAVAGER:1", "DELIVER:CROSSBOW:2" ]
+  chasseur-rare-07:
+    name: "<light_purple>Les chambres d'épreuve"
+    description: [ "<info>Le vent hurle dans les couloirs de cuivre." ]
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 500, min-rank: artisan}
+    objectives: [ "KILL:BOGGED:8", "DELIVER:BREEZE_ROD:4", "DELIVER:TRIAL_KEY:1" ]
+  chasseur-rare-08:
+    name: "<light_purple>Les fantômes"
+    meta: {kind: rare, tier: normal, reward: 330}
+    reputation: 2
+    objectives:
+      - {type: kill, target: PHANTOM, amount: 6, where: {time: night}}
+      - {type: deliver, target: PHANTOM_MEMBRANE, amount: 6}
+
+  # ---------- Nouvelles quêtes de la semaine ----------
+  chasseur-semaine-04:
+    name: "<gold>La grande battue"
+    reputation: 3
+    meta: {kind: weekly, reward: 1050, xp: 220}
+    stages:
+      - id: battue
+        text: "<info>Nettoie les environs"
+        objectives: [ "KILL:ANY:400" ]
+      - id: nuit
+        text: "<info>Puis tiens la garde de nuit"
+        objectives:
+          - {type: kill, target: ANY, amount: 150, where: {time: night}}
+      - id: rapport
+        text: "<info>Rapporte les preuves à la guilde"
+        objectives: [ "DELIVER:BONE_BLOCK:16", "DELIVER:GUNPOWDER:64" ]
+  chasseur-semaine-05:
+    name: "<gold>L'expédition"
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 210, min-rank: compagnon}
+    objectives:
+      - {type: kill, target: ANY, amount: 150, where: {dimension: nether}}
+      - {type: kill, target: ENDERMAN, amount: 30, where: {dimension: the_end}}
+      - {type: deliver, target: ENDER_PEARL, amount: 16}

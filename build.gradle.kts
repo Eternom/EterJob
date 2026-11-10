@@ -24,13 +24,13 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:26.2.build.129-stable")
 
     // Socle commun : base, Redis, langues, menus, actions (plugin EterLib installé sur le serveur)
-    compileOnly("com.github.Eternom:EterLib:1.22.0")
+    compileOnly("com.github.Eternom:EterLib:1.25.0")
     // PNJ (softdepend) : marqueur « ! » au-dessus du donneur de quêtes, nettoyage des anciens PNJ d'EterMarket
     compileOnly("com.github.Eternom:EterNpc:2.0.0")
     // Argent : l'API d'EterEconomy (chaque mouvement avec sa source)
     compileOnly("com.github.Eternom:EterEconomy:2.2.2")
-    // Terrains des clans (softdepend) : pas de progrès sur le terrain d'un autre clan
-    compileOnly("com.github.Eternom:EterClan:1.7.0")
+    // Le moteur des quêtes (depend) : les quêtes de métier sont des quêtes d'EterQuest
+    compileOnly("com.github.Eternom:EterQuest:1.0.0")
 
     // Tests de la logique pure (niveaux, objectifs)
     testImplementation("io.papermc.paper:paper-api:26.2.build.129-stable")

@@ -1,135 +1,368 @@
-# Quêtes du métier « fermier » (EterJob). Rechargées par /eterjob reload, sur tout le réseau.
+# Quêtes du métier « fermier » (EterJob), au format d'EterQuest (le moteur des quêtes, partagé avec tout le réseau).
+# Après un changement : AUGMENTER « version » ci-dessous (la plus haute l'emporte partout), puis /eterjob reload.
 #
-# Une quête : tier (easy, normal, hard), reward (Heloks), xp (XP de métier ; sinon celle du niveau, voir config.yml),
-# min-rank (apprenti, compagnon, artisan, expert, maitre : tirée seulement à partir de ce rang), objectives.
-# Objectif : "TYPE:CIBLE:QUANTITÉ"
-#   ITEM     objets à livrer au donneur de quêtes (simples, sans nom ni enchantement)
-#   BREAK    casser des blocs naturels (pas posés par un joueur)       HARVEST  récolter des cultures mûres
-#   KILL     tuer des créatures (apparues naturellement)                FISH     pêcher
-#   CRAFT    fabriquer          SMELT  sortir d'un four                 BREED    faire se reproduire des animaux
-#   EXPLORE  entrer dans un biome (CIBLE = biome, ex : LUSH_CAVES)      ENCHANT  enchanter (table)
-#   TRADE    commercer avec un villageois
-# CIBLE : une matière, une créature, ANY (n'importe laquelle), ou un groupe : #ores #logs #crops #fish #stone #flowers
-# Au plus 3 objectifs d'action (tout sauf ITEM) par quête. Quantités et récompense augmentent avec le rang du joueur.
-#
-# daily  : quêtes du jour (une par niveau, puis la bonus) ; weekly : la quête de la semaine (longue, bien payée) ;
-# rare   : une petite chance de remplacer une quête du jour ; story : l'histoire du métier, une étape par rang
-#          (title, text : le lore, en MiniMessage).
+# Chaque quête : un identifiant définitif (minuscules, chiffres, - et _), puis :
+#   meta     ce que la guilde en fait : kind (daily, weekly, rare, story), tier (easy, normal, hard), reward (Heloks,
+#            × la taille du rang), xp (XP de métier ; sinon celle du niveau, config.yml), min-rank (tirée à partir de ce
+#            rang : apprenti, compagnon, artisan, expert, maitre), rank (story : l'étape de ce rang)
+#   name, description   nom et texte (MiniMessage) ; sans nom : « Quête facile », « ✦ Quête rare »...
+#   requires conditions pour être tirée : « reputation <pnj> <min> » (réputation × ratio du PNJ), « done <quête> »...
+#   reputation          réputation gagnée à la fin (1 par défaut ici)
+#   objectives (une étape) ou stages (plusieurs : id, text, objectives, turn-in, say, time-limit, branches...)
+# Objectif : "TYPE:CIBLE:QUANTITÉ" ou {type, target, amount, where, optional, scale, text}
+#   break harvest kill fish craft smelt breed explore enchant trade : actions du jeu (cible, ANY, ou un groupe
+#   #ores #logs #crops #fish #stone #flowers) ; deliver : objets à remettre ; talk : parler à un PNJ (npc: fermier) ;
+#   signal : ce que fait le village (eterhub:harvest {crop, quality, zone}, eterhub:fish {fish, rarity, grams}...)
+#   where : {time: day|night, weather: rain|thunder|clear, biomes: [...], dimension: nether, min-y, max-y}
+#   optional: true -> objectif bonus (pas nécessaire) ; scale: false -> la quantité ne grandit pas avec le rang
+# turn-in : où se rend la dernière étape. Par défaut ici : au donneur de quêtes (giver), ou à distance (remote, /job)
+#   s'il n'y a pas d'objets à remettre ; npc:<pnj> : chez ce PNJ (ex : au village).
+# Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
+# structure : shulkers, gardien ancien, brutes piglins).
 
-daily:
-  - tier: easy
-    reward: 120
-    objectives: [ "HARVEST:WHEAT:64", "ITEM:BREAD:16" ]
-  - tier: easy
-    reward: 120
-    objectives: [ "HARVEST:CARROTS:64", "ITEM:CARROT:32" ]
-  - tier: easy
-    reward: 120
-    objectives: [ "HARVEST:POTATOES:64", "ITEM:BAKED_POTATO:24" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "ITEM:SUGAR_CANE:48", "ITEM:PAPER:24" ]
-  - tier: easy
-    reward: 140
-    objectives: [ "HARVEST:WHEAT:48", "ITEM:EGG:8", "ITEM:HAY_BLOCK:4" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "HARVEST:BEETROOTS:64", "ITEM:BEETROOT_SOUP:8" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:PUMPKIN:24", "ITEM:PUMPKIN_PIE:8", "ITEM:CARVED_PUMPKIN:4" ]
-  - tier: normal
-    reward: 190
-    objectives: [ "BREAK:MELON:24", "ITEM:MELON_SLICE:64", "ITEM:GLISTERING_MELON_SLICE:2" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "HARVEST:WHEAT:32", "ITEM:LEATHER:8", "ITEM:COOKED_BEEF:16" ]
-  - tier: normal
-    reward: 200
-    objectives: [ "HARVEST:WHEAT:32", "ITEM:WHITE_WOOL:16", "ITEM:COOKED_MUTTON:8" ]
-  - tier: normal
-    reward: 210
+version: 1
+defaults:
+  category: job
+  tags: [fermier]
+  turn-in: [giver, remote]
+  reputation: 1
+  meta: {job: fermier}
+
+quests:
+
+  # ---------- Quêtes du jour (une par niveau chaque jour ; jamais celles d'hier) ----------
+  fermier-jour-01:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "HARVEST:WHEAT:64", "DELIVER:BREAD:16" ]
+  fermier-jour-02:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "HARVEST:CARROTS:64", "DELIVER:CARROT:32" ]
+  fermier-jour-03:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "HARVEST:POTATOES:64", "DELIVER:BAKED_POTATO:24" ]
+  fermier-jour-04:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "DELIVER:SUGAR_CANE:48", "DELIVER:PAPER:24" ]
+  fermier-jour-05:
+    meta: {kind: daily, tier: easy, reward: 140}
+    objectives: [ "HARVEST:WHEAT:48", "DELIVER:EGG:8", "DELIVER:HAY_BLOCK:4" ]
+  fermier-jour-06:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "HARVEST:BEETROOTS:64", "DELIVER:BEETROOT_SOUP:8" ]
+  fermier-jour-07:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:PUMPKIN:24", "DELIVER:PUMPKIN_PIE:8", "DELIVER:CARVED_PUMPKIN:4" ]
+  fermier-jour-08:
+    meta: {kind: daily, tier: normal, reward: 190}
+    objectives: [ "BREAK:MELON:24", "DELIVER:MELON_SLICE:64", "DELIVER:GLISTERING_MELON_SLICE:2" ]
+  fermier-jour-09:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "HARVEST:WHEAT:32", "DELIVER:LEATHER:8", "DELIVER:COOKED_BEEF:16" ]
+  fermier-jour-10:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "HARVEST:WHEAT:32", "DELIVER:WHITE_WOOL:16", "DELIVER:COOKED_MUTTON:8" ]
+  fermier-jour-11:
+    meta: {kind: daily, tier: normal, reward: 210}
     objectives: [ "HARVEST:WHEAT:64", "HARVEST:CARROTS:64", "HARVEST:POTATOES:64" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "HARVEST:NETHER_WART:64", "ITEM:NETHER_WART:64", "ITEM:FERMENTED_SPIDER_EYE:4" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "HARVEST:COCOA:32", "ITEM:COOKIE:32", "ITEM:CAKE:2" ]
-  - tier: hard
-    reward: 300
-    objectives: [ "HARVEST:CARROTS:96", "ITEM:GOLDEN_CARROT:16", "ITEM:RABBIT_STEW:2" ]
-  - tier: hard
-    reward: 290
-    objectives: [ "HARVEST:POTATOES:64", "HARVEST:CARROTS:64", "ITEM:COOKED_PORKCHOP:16", "ITEM:FEATHER:16" ]
-  - tier: hard
-    reward: 310
-    objectives: [ "HARVEST:SWEET_BERRY_BUSH:32", "ITEM:HONEY_BOTTLE:4", "ITEM:HONEYCOMB:8" ]
-  - tier: hard
-    reward: 280
+  fermier-jour-12:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "HARVEST:NETHER_WART:64", "DELIVER:NETHER_WART:64", "DELIVER:FERMENTED_SPIDER_EYE:4" ]
+  fermier-jour-13:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "HARVEST:COCOA:32", "DELIVER:COOKIE:32", "DELIVER:CAKE:2" ]
+  fermier-jour-14:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "HARVEST:CARROTS:96", "DELIVER:GOLDEN_CARROT:16", "DELIVER:RABBIT_STEW:2" ]
+  fermier-jour-15:
+    meta: {kind: daily, tier: hard, reward: 290}
+    objectives: [ "HARVEST:POTATOES:64", "HARVEST:CARROTS:64", "DELIVER:COOKED_PORKCHOP:16", "DELIVER:FEATHER:16" ]
+  fermier-jour-16:
+    meta: {kind: daily, tier: hard, reward: 310}
+    objectives: [ "HARVEST:SWEET_BERRY_BUSH:32", "DELIVER:HONEY_BOTTLE:4", "DELIVER:HONEYCOMB:8" ]
+  fermier-jour-17:
+    meta: {kind: daily, tier: hard, reward: 280}
     objectives: [ "HARVEST:BEETROOTS:64", "BREAK:MELON:32", "BREAK:PUMPKIN:32" ]
-  - tier: easy
-    reward: 130
-    objectives: [ "BREED:COW:6", "ITEM:LEATHER:8" ]
-  - tier: normal
-    reward: 200
+  fermier-jour-18:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "BREED:COW:6", "DELIVER:LEATHER:8" ]
+  fermier-jour-19:
+    meta: {kind: daily, tier: normal, reward: 200}
     objectives: [ "HARVEST:#crops:192", "CRAFT:BREAD:32" ]
-  - tier: hard
-    reward: 300
-    min-rank: artisan
-    objectives: [ "BREED:SHEEP:10", "BREED:PIG:10", "ITEM:COOKED_PORKCHOP:24" ]
+  fermier-jour-20:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: artisan}
+    objectives: [ "BREED:SHEEP:10", "BREED:PIG:10", "DELIVER:COOKED_PORKCHOP:24" ]
 
-weekly:
-  - reward: 900
-    xp: 200
-    objectives: [ "HARVEST:#crops:2500", "ITEM:HAY_BLOCK:16" ]
-  - reward: 950
-    xp: 200
-    objectives: [ "BREED:COW:30", "BREED:CHICKEN:30", "ITEM:CAKE:4" ]
-  - reward: 1000
-    xp: 220
-    min-rank: artisan
-    objectives: [ "HARVEST:NETHER_WART:500", "ITEM:GOLDEN_CARROT:32" ]
+  # ---------- Quêtes de la semaine (longues, bien payées) ----------
+  fermier-semaine-01:
+    reputation: 3
+    meta: {kind: weekly, reward: 900, xp: 200}
+    objectives: [ "HARVEST:#crops:2500", "DELIVER:HAY_BLOCK:16" ]
+  fermier-semaine-02:
+    reputation: 3
+    meta: {kind: weekly, reward: 950, xp: 200}
+    objectives: [ "BREED:COW:30", "BREED:CHICKEN:30", "DELIVER:CAKE:4" ]
+  fermier-semaine-03:
+    reputation: 3
+    meta: {kind: weekly, reward: 1000, xp: 220, min-rank: artisan}
+    objectives: [ "HARVEST:NETHER_WART:500", "DELIVER:GOLDEN_CARROT:32" ]
 
-rare:
-  - tier: normal
-    reward: 300
-    objectives: [ "TRADE:ANY:4", "ITEM:EMERALD:4" ]
-  - tier: hard
-    reward: 450
-    objectives: [ "BREED:BEE:4", "ITEM:HONEY_BLOCK:4" ]
-  - tier: normal
-    reward: 300
-    objectives: [ "EXPLORE:SUNFLOWER_PLAINS:1", "ITEM:SUNFLOWER:8" ]
+  # ---------- Quêtes rares (une petite chance de remplacer une quête du jour) ----------
+  fermier-rare-01:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
+    objectives: [ "TRADE:ANY:4", "DELIVER:EMERALD:4" ]
+  fermier-rare-02:
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450}
+    objectives: [ "BREED:BEE:4", "DELIVER:HONEY_BLOCK:4" ]
+  fermier-rare-03:
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 300}
+    objectives: [ "EXPLORE:SUNFLOWER_PLAINS:1", "DELIVER:SUNFLOWER:8" ]
 
-story:
-  - rank: apprenti
-    title: "<primary>Le premier champ"
-    text: [ "<info>La fermière Odile te confie un sac de graines.", "<info>« La terre rend ce qu'on lui donne. »" ]
-    reward: 300
-    xp: 150
-    objectives: [ "HARVEST:WHEAT:192", "ITEM:BREAD:32" ]
-  - rank: compagnon
-    title: "<primary>L'étable"
-    text: [ "<info>La guilde veut un troupeau digne de ce nom." ]
-    reward: 500
-    xp: 200
+  # ---------- L'histoire du métier : une étape par rang ----------
+  fermier-histoire-apprenti:
+    name: "<primary>Le premier champ"
+    description: [ "<info>La fermière Odile te confie un sac de graines.", "<info>« La terre rend ce qu'on lui donne. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 300, xp: 150, rank: apprenti}
+    objectives: [ "HARVEST:WHEAT:192", "DELIVER:BREAD:32" ]
+  fermier-histoire-compagnon:
+    name: "<primary>L'étable"
+    description: [ "<info>La guilde veut un troupeau digne de ce nom." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 500, xp: 200, rank: compagnon}
     objectives: [ "BREED:COW:16", "BREED:SHEEP:16" ]
-  - rank: artisan
-    title: "<primary>Le banquet"
-    text: [ "<info>Le village organise une fête : il faut nourrir tout le monde." ]
-    reward: 800
-    xp: 300
-    objectives: [ "HARVEST:#crops:768", "ITEM:CAKE:6", "ITEM:PUMPKIN_PIE:16" ]
-  - rank: expert
-    title: "<primary>Les cultures maudites"
-    text: [ "<info>Les alchimistes paient cher la verrue du Nether." ]
-    reward: 1200
-    xp: 400
-    objectives: [ "HARVEST:NETHER_WART:640", "ITEM:FERMENTED_SPIDER_EYE:8" ]
-  - rank: maitre
-    title: "<primary>La corne d'abondance"
-    text: [ "<info>Odile te regarde, émue.", "<info>« Plus personne n'aura faim, grâce à toi. »" ]
-    reward: 2000
-    xp: 500
-    objectives: [ "HARVEST:#crops:3000", "ITEM:GOLDEN_CARROT:64" ]
+  fermier-histoire-artisan:
+    name: "<primary>Le banquet"
+    description: [ "<info>Le village organise une fête : il faut nourrir tout le monde." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 800, xp: 300, rank: artisan}
+    objectives: [ "HARVEST:#crops:768", "DELIVER:CAKE:6", "DELIVER:PUMPKIN_PIE:16" ]
+  fermier-histoire-expert:
+    name: "<primary>Les cultures maudites"
+    description: [ "<info>Les alchimistes paient cher la verrue du Nether." ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 1200, xp: 400, rank: expert}
+    objectives: [ "HARVEST:NETHER_WART:640", "DELIVER:FERMENTED_SPIDER_EYE:8" ]
+  fermier-histoire-maitre:
+    name: "<primary>La corne d'abondance"
+    description: [ "<info>Odile te regarde, émue.", "<info>« Plus personne n'aura faim, grâce à toi. »" ]
+    reputation: 5
+    abandon: false
+    meta: {kind: story, reward: 2000, xp: 500, rank: maitre}
+    objectives: [ "HARVEST:#crops:3000", "DELIVER:GOLDEN_CARROT:64" ]
+
+  # ---------- Nouvelles quêtes du jour ----------
+  fermier-jour-21:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "HARVEST:WHEAT:48", "CRAFT:HAY_BLOCK:6" ]
+  fermier-jour-22:
+    meta: {kind: daily, tier: easy, reward: 120}
+    objectives: [ "BREED:CHICKEN:6", "DELIVER:EGG:16", "DELIVER:FEATHER:8" ]
+  fermier-jour-23:
+    meta: {kind: daily, tier: easy, reward: 130}
+    objectives: [ "HARVEST:SWEET_BERRY_BUSH:24", "DELIVER:SWEET_BERRIES:32" ]
+  fermier-jour-24:
+    name: "<primary>Rosée du matin"
+    description: [ "<info>Les cultures cueillies au lever du jour sont les meilleures." ]
+    meta: {kind: daily, tier: normal, reward: 210}
+    objectives:
+      - {type: harvest, target: "#crops", amount: 96, where: {time: day}}
+      - {type: deliver, target: BREAD, amount: 16}
+  fermier-jour-25:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "BREED:RABBIT:6", "DELIVER:RABBIT_HIDE:6", "DELIVER:CARROT:32" ]
+  fermier-jour-26:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives: [ "CRAFT:COOKIE:64", "DELIVER:COCOA_BEANS:16" ]
+  fermier-jour-27:
+    name: "<primary>Les ruches"
+    meta: {kind: daily, tier: normal, reward: 220}
+    objectives: [ "BREED:BEE:2", "CRAFT:HONEY_BLOCK:2", "DELIVER:HONEYCOMB:6" ]
+  fermier-jour-28:
+    meta: {kind: daily, tier: hard, reward: 300}
+    objectives: [ "HARVEST:#crops:256", "SMELT:BAKED_POTATO:32", "DELIVER:PUMPKIN_PIE:12" ]
+  fermier-jour-29:
+    name: "<primary>Sous la pluie"
+    description: [ "<info>« La pluie fait pousser, pas fuir. »" ]
+    meta: {kind: daily, tier: hard, reward: 320}
+    objectives:
+      - {type: harvest, target: "#crops", amount: 128, where: {weather: rain}}
+      - {type: deliver, target: HAY_BLOCK, amount: 8}
+  fermier-jour-30:
+    meta: {kind: daily, tier: hard, reward: 300, min-rank: compagnon}
+    objectives: [ "BREED:GOAT:4", "BREED:SHEEP:8", "DELIVER:WHITE_WOOL:32", "DELIVER:MILK_BUCKET:2" ]
+
+  # ---------- Au village (lobby) : Mathurin le Fermier et Aurèle le Vigneron ----------
+  # Les récoltes faites pour ces quêtes vont au « panier de la commande » : pas d'objet, et pas compté dans le
+  # plafond de récolte du jour des Champs. Réputation auprès du PNJ : réputation du joueur × son ratio (EterNpc).
+  fermier-village-commande:
+    name: "<gold>La commande de Mathurin"
+    description: [ "<info>Le fermier du village manque de bras pour ses Champs." ]
+    requires: [ "reputation eternpc:fermier 10" ]
+    reputation: 2
+    meta: {kind: daily, tier: normal, reward: 230}
+    stages:
+      - id: rencontre
+        text: "<info>Va voir <accent>Mathurin</accent>, le fermier du village (lobby)"
+        objectives: [ {type: talk, npc: fermier} ]
+        say: [ "Ah, c'est la guilde qui t'envoie ? Parfait !", "Il me faut du blé de mes Champs, et vite : le moulin attend." ]
+      - id: recolte
+        text: "<info>Récolte le blé des Champs du village"
+        objectives:
+          - {type: signal, key: eterhub:harvest, match: {crop: wheat}, amount: 48, text: "Blé des Champs du village"}
+        turn-in: [ npc:fermier ]
+        say: [ "Magnifique ! Le moulin va tourner toute la nuit. Merci, {player} !" ]
+  fermier-village-vendanges:
+    name: "<dark_purple>Les vendanges d'Aurèle"
+    description: [ "<info>Le vigneron prépare sa cuvée : il lui faut des grappes." ]
+    requires: [ "reputation eternpc:vigneron 10" ]
+    reputation: 2
+    meta: {kind: daily, tier: normal, reward: 230}
+    stages:
+      - id: rencontre
+        text: "<info>Va voir <accent>Aurèle</accent>, le vigneron du village"
+        objectives: [ {type: talk, npc: vigneron} ]
+        say: [ "Les grappes sont mûres, il faut les cueillir avant qu'elles ne tombent.", "Rapporte-m'en, et choisis les plus belles si tu peux !" ]
+      - id: cueillette
+        text: "<info>Cueille des grappes dans les Vignes"
+        objectives:
+          - {type: signal, key: eterhub:harvest, match: {crop: grape}, amount: 24, text: "Grappes des Vignes"}
+          - {type: signal, key: eterhub:harvest, match: {crop: grape, quality: [fine, golden]}, amount: 2, optional: true, scale: false, text: "Belles grappes"}
+        turn-in: [ npc:vigneron ]
+        say: [ "Quel parfum ! Cette cuvée portera ton nom, {player}." ]
+  fermier-village-tournee:
+    name: "<gold>La tournée des champs"
+    description: [ "<info>Mathurin veut savoir comment se porte chaque parcelle de blé." ]
+    requires: [ "reputation eternpc:fermier 15" ]
+    reputation: 3
+    meta: {kind: rare, tier: normal, reward: 320}
+    stages:
+      - id: rencontre
+        text: "<info>Va voir <accent>Mathurin</accent> au village"
+        objectives: [ {type: talk, npc: fermier} ]
+        say: [ "Fais le tour des trois champs de blé : l'ouest, le sud et l'est.", "Rapporte-moi un peu de chacun, que je compare." ]
+      - id: tournee
+        text: "<info>Récolte du blé dans chacun des trois champs"
+        objectives:
+          - {type: signal, key: eterhub:harvest, match: {crop: wheat, zone: champs-ble-ouest}, amount: 16, text: "Blé du champ de l'ouest"}
+          - {type: signal, key: eterhub:harvest, match: {crop: wheat, zone: champs-ble-sud}, amount: 16, text: "Blé du champ du sud"}
+          - {type: signal, key: eterhub:harvest, match: {crop: wheat, zone: champs-ble-est}, amount: 16, text: "Blé du champ de l'est"}
+        turn-in: [ npc:fermier ]
+        say: [ "Le champ de l'est a soif, je le savais... Merci pour ton aide, {player}." ]
+  fermier-village-belles-recoltes:
+    name: "<gold>Le concours de Mathurin"
+    description: [ "<info>La foire approche : Mathurin veut présenter ses plus beaux légumes." ]
+    requires: [ "reputation eternpc:fermier 25" ]
+    reputation: 4
+    meta: {kind: rare, tier: hard, reward: 450}
+    stages:
+      - id: rencontre
+        text: "<info>Va voir <accent>Mathurin</accent> au village"
+        objectives: [ {type: talk, npc: fermier} ]
+        say: [ "Pour la foire, il me faut ce qu'il y a de plus beau.", "Des carottes et des patates de belle qualité. Une dorée, et je te serais éternellement reconnaissant !" ]
+      - id: selection
+        text: "<info>Récolte des légumes de belle qualité"
+        objectives:
+          - {type: signal, key: eterhub:harvest, match: {crop: carrot, quality: [fine, golden]}, amount: 6, text: "Belles carottes"}
+          - {type: signal, key: eterhub:harvest, match: {crop: potato, quality: [fine, golden]}, amount: 6, text: "Belles patates"}
+          - {type: signal, key: eterhub:harvest, match: {quality: golden}, amount: 1, optional: true, scale: false, text: "Une récolte dorée"}
+        turn-in: [ npc:fermier ]
+        say: [ "Le premier prix est à nous, j'en suis sûr !" ]
+  fermier-village-course:
+    name: "<gold>Avant l'orage"
+    description: [ "<info>Un orage arrive sur le village : tout doit être rentré à temps !" ]
+    requires: [ "reputation eternpc:fermier 20" ]
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 420}
+    stages:
+      - id: alerte
+        text: "<info>Va voir <accent>Mathurin</accent> au village"
+        objectives: [ {type: talk, npc: fermier} ]
+        say: [ "Vite, l'orage arrive ! Tu as cinq minutes pour rentrer ce que tu peux !" ]
+      - id: course
+        text: "<info>Récolte un maximum dans les Champs : 5 minutes !"
+        time-limit: 300
+        objectives:
+          - {type: signal, key: eterhub:harvest, amount: 40, text: "Récoltes rentrées à temps"}
+        turn-in: [ npc:fermier ]
+        say: [ "Ouf ! Tout est à l'abri. Tu cours plus vite que mon chien, {player} !" ]
+
+  # ---------- Quêtes rares spéciales ----------
+  fermier-rare-04:
+    name: "<light_purple>La moisson de minuit"
+    description: [ "<info>Une vieille superstition : le blé coupé à minuit porte bonheur." ]
+    reputation: 2
+    meta: {kind: rare, tier: normal, reward: 320}
+    objectives:
+      - {type: harvest, target: WHEAT, amount: 96, where: {time: night}}
+      - {type: deliver, target: HAY_BLOCK, amount: 6}
+  fermier-rare-05:
+    name: "<light_purple>La commande du boulanger"
+    description: [ "<info>Le boulanger de la guilde a une grosse commande." ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 480}
+    stages:
+      - id: ble
+        text: "<info>Récolte le blé"
+        objectives: [ "HARVEST:WHEAT:160" ]
+      - id: fournee
+        text: "<info>Fais le pain"
+        objectives: [ "CRAFT:BREAD:48" ]
+      - id: livraison
+        text: "<info>Livre la commande au donneur de quêtes"
+        objectives: [ "DELIVER:BREAD:32", "DELIVER:CAKE:1" ]
+  fermier-rare-06:
+    name: "<light_purple>Le champignon géant"
+    description: [ "<info>Un botaniste cherche des spores des terres champignons." ]
+    reputation: 2
+    meta: {kind: rare, tier: hard, reward: 450, min-rank: compagnon}
+    objectives:
+      - {type: explore, target: MUSHROOM_FIELDS, amount: 1}
+      - {type: breed, target: MOOSHROOM, amount: 2}
+      - {type: deliver, target: RED_MUSHROOM, amount: 16}
+      - {type: deliver, target: BROWN_MUSHROOM, amount: 16}
+  fermier-rare-07:
+    name: "<light_purple>La fleur de feu"
+    description: [ "<info>Les fleurs-torches ont disparu depuis des siècles... sauf pour ceux qui savent chercher." ]
+    reputation: 3
+    meta: {kind: rare, tier: hard, reward: 500, min-rank: artisan}
+    objectives: [ "HARVEST:TORCHFLOWER_CROP:4", "HARVEST:PITCHER_CROP:2", "DELIVER:TORCHFLOWER:4" ]
+  fermier-rare-08:
+    name: "<light_purple>Le marché aux bestiaux"
+    meta: {kind: rare, tier: normal, reward: 330}
+    reputation: 2
+    stages:
+      - id: troupeau
+        text: "<info>Fais grandir le troupeau"
+        objectives: [ "BREED:COW:8", "BREED:PIG:8", "BREED:SHEEP:8" ]
+      - id: vente
+        text: "<info>Vends aux villageois"
+        objectives: [ "TRADE:ANY:6" ]
+
+  # ---------- Nouvelles quêtes de la semaine ----------
+  fermier-semaine-04:
+    name: "<gold>La grande foire"
+    description: [ "<info>Toute la région vient à la foire : il faut de tout, en quantité." ]
+    reputation: 3
+    meta: {kind: weekly, reward: 1050, xp: 220}
+    stages:
+      - id: recoltes
+        text: "<info>Remplis les greniers"
+        objectives: [ "HARVEST:WHEAT:400", "HARVEST:CARROTS:200", "HARVEST:POTATOES:200" ]
+      - id: patisseries
+        text: "<info>Prépare les gourmandises"
+        objectives: [ "CRAFT:CAKE:6", "CRAFT:PUMPKIN_PIE:24", "CRAFT:COOKIE:128" ]
+      - id: livraison
+        text: "<info>Livre les plus belles pièces à la guilde"
+        objectives: [ "DELIVER:CAKE:4", "DELIVER:GOLDEN_CARROT:16" ]
+  fermier-semaine-05:
+    name: "<gold>L'éleveur"
+    reputation: 3
+    meta: {kind: weekly, reward: 950, xp: 200}
+    objectives: [ "BREED:ANY:80", "DELIVER:LEATHER:32", "DELIVER:WHITE_WOOL:64" ]
