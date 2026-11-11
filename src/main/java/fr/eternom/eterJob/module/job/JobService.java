@@ -120,6 +120,26 @@ public class JobService implements Listener {
                 plugin.getLogger().warning("Statistiques des métiers non relues : " + e.getMessage());
             }
         }, 40, 20 * 60 * 60);
+        // Rappel doux : 30 min de connexion sans métier (reminder-minutes, 0 : jamais), une fois par connexion
+        long remindAfter = plugin.getConfig().getLong("reminder-minutes", 30) * 60_000;
+        if (remindAfter > 0) {
+            java.util.Set<UUID> reminded = java.util.concurrent.ConcurrentHashMap.newKeySet();
+            Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                long now = System.currentTimeMillis();
+                reminded.removeIf(uuid -> Bukkit.getPlayer(uuid) == null);
+                for (org.bukkit.entity.Player online : Bukkit.getOnlinePlayers()) {
+                    UUID uuid = online.getUniqueId();
+                    if (now - online.getLastLogin() < remindAfter || !reminded.add(uuid)) {
+                        continue;
+                    }
+                    Tasks.async(plugin, online, () -> jobOf(uuid).isEmpty(), none -> {
+                        if (none) {
+                            messages.send(online, "job.reminder");
+                        }
+                    }, () -> { });
+                }
+            }, 20 * 60, 20 * 60 * 5);
+        }
         // Les colis de l'ancienne boîte d'EterJob passent dans celle d'EterQuest (une fois)
         Tasks.async(plugin, () -> {
             List<Map.Entry<UUID, String>> parcels = repository.drainOldBox();

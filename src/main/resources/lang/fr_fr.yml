@@ -1,6 +1,7 @@
 # Textes d'EterJob (MiniMessage). Palette : <primary> <accent> <info> <error> <success> (EterLib/config.yml).
 
 job:
+  reminder: "<info>Tu n'as pas encore de métier : c'est le vrai revenu du serveur. <accent><click:run_command:'/job guild'>[Choisir un métier]</click></accent> <dark_gray>(ou le chef de guilde du lobby)"
   name:
     mineur: "Mineur"
     bucheron: "Bûcheron"

@@ -11,6 +11,9 @@
 #    eterjob:story <métier>      le maître du métier (l'histoire)    eterjob:perks [métier]   les avantages
 #  /eterjob reload relit ce fichier et quests/ sur tout le réseau.
 
+# Rappel doux à un joueur sans métier, après ce temps de connexion (une fois par connexion) ; 0 : jamais.
+reminder-minutes: 30
+
 jobs:
   # Les quêtes changent à minuit dans ce fuseau ; la quête de la semaine, le lundi.
   time-zone: Europe/Paris

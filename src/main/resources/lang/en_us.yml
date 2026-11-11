@@ -1,6 +1,7 @@
 # EterJob texts (MiniMessage). Palette: <primary> <accent> <info> <error> <success> (EterLib/config.yml).
 
 job:
+  reminder: "<info>You have no job yet: it is the server's real income. <accent><click:run_command:'/job guild'>[Choose a job]</click></accent> <dark_gray>(or the guild master in the lobby)"
   name:
     mineur: "Miner"
     bucheron: "Lumberjack"
