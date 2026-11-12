@@ -20,7 +20,7 @@
 # Seules les créatures apparues naturellement comptent (pas les spawners d'épreuve, ni celles posées avec une
 # structure : shulkers, gardien ancien, brutes piglins).
 
-version: 2
+version: 3
 defaults:
   category: job
   tags: [chasseur]
@@ -92,7 +92,22 @@ quests:
     meta: {kind: daily, tier: hard, reward: 300, min-rank: artisan}
     objectives: [ "KILL:PIGLIN:8", "KILL:HOGLIN:6", "DELIVER:COOKED_PORKCHOP:16" ]
 
+  # Monstres d'EterMob (signal etermob:kill : variant, ratio 1 Ordinaire à 5 Fléau, type, tier)
+  chasseur-jour-rangs:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives:
+      - {type: signal, key: etermob:kill, match: {ratio: ["2", "3", "4", "5"]}, amount: 10, text: "Monstres plus forts qu'Ordinaire"}
+  chasseur-jour-livre:
+    meta: {kind: daily, tier: normal, reward: 200}
+    objectives:
+      - {type: signal, key: etermob:kill, match: {variant: [goule, page-volante, ame-enchainee, garde-os, archer-os, acolyte, zombie-mineur]}, amount: 8, text: "Serviteurs du Livre"}
+
   # ---------- Quêtes de la semaine (longues, bien payées) ----------
+  chasseur-semaine-elites:
+    reputation: 3
+    meta: {kind: weekly, reward: 1100, xp: 250}
+    objectives:
+      - {type: signal, key: etermob:kill, match: {ratio: ["4", "5"]}, amount: 5, text: "Élites ou Fléaux"}
   chasseur-semaine-01:
     reputation: 3
     meta: {kind: weekly, reward: 900, xp: 200}
