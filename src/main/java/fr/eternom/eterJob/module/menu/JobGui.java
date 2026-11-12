@@ -107,8 +107,9 @@ public class JobGui {
                 String name = EterLib.get().getPlayers().get(ranked.player()).map(found -> found.name()).orElse("?");
                 lines.add(new RankingMenu.Line(ranked.player(), name, (int) ranked.value()));
             }
-            return lines;
-        }, lines -> player.openInventory(new RankingMenu(this, player, job, lines).getInventory()),
+            long[] mine = service.repository().placeInJob(job, player.getUniqueId());
+            return new Object[]{lines, mine};
+        }, data -> player.openInventory(new RankingMenu(this, player, job, (List<RankingMenu.Line>) data[0], (long[]) data[1]).getInventory()),
                 () -> messages.send(player, "error.generic"));
     }
 

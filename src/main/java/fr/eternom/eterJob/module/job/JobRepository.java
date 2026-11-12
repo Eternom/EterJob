@@ -245,6 +245,18 @@ public class JobRepository {
                 + Math.max(1, limit), job).stream().map(row -> new JobApi.Ranked(row.getUUID("uuid"), row.getLong("xp"))).toList();
     }
 
+    /** Sa place dans ce métier {place, xp} ; {0, 0} sans XP. Bloquant. */
+    public long[] placeInJob(String job, UUID player) {
+        long xp = database.query("SELECT xp FROM " + database.table(LEVELS) + " WHERE job = ? AND uuid = ?", job, player).stream()
+                .findFirst().map(row -> row.getLong("xp")).orElse(0L);
+        if (xp <= 0) {
+            return new long[]{0, 0};
+        }
+        long above = database.query("SELECT COUNT(*) AS above FROM " + database.table(LEVELS) + " WHERE job = ? AND xp > ?", job, xp)
+                .stream().findFirst().map(row -> row.getLong("above")).orElse(0L);
+        return new long[]{above + 1, xp};
+    }
+
     /** Membres de chaque métier (statistiques de la guilde). */
     public Map<String, Integer> membersByJob() {
         Map<String, Integer> counts = new LinkedHashMap<>();

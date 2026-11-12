@@ -24,11 +24,12 @@ class RankingMenu implements Menu {
 
     private static final int[] SLOTS = {13, 21, 23, 29, 30, 31, 32, 33, 39, 41};
     private static final int BACK = 49;
+    private static final int MINE = 4;
 
     private final JobGui gui;
     private final Inventory inventory;
 
-    RankingMenu(JobGui gui, Player viewer, String job, List<Line> lines) {
+    RankingMenu(JobGui gui, Player viewer, String job, List<Line> lines, long[] mine) {
         this.gui = gui;
         Messages messages = gui.messages();
         this.inventory = Bukkit.createInventory(this, 54, messages.get(viewer, "ranking.title", "job", gui.service().jobName(viewer, job)));
@@ -42,6 +43,14 @@ class RankingMenu implements Menu {
                     List.of(messages.get(viewer, "ranking.level", "rank", gui.service().rankName(viewer, levels.rank(level)),
                             "level", String.valueOf(level), "xp", String.valueOf(line.xp())))));
         }
+        // Sa propre place, même hors du top 10
+        Levels own = gui.service().levels();
+        inventory.setItem(MINE, Items.head(viewer.getPlayerProfile(), mine[0] > 0
+                ? messages.get(viewer, "ranking.mine", "place", String.valueOf(mine[0]))
+                : messages.get(viewer, "ranking.mine-none"), mine[0] > 0
+                ? List.of(messages.get(viewer, "ranking.level", "rank", gui.service().rankName(viewer, own.rank(own.level((int) mine[1]))),
+                "level", String.valueOf(own.level((int) mine[1])), "xp", String.valueOf(mine[1])))
+                : List.of()));
         if (lines.isEmpty()) {
             inventory.setItem(22, Items.item(Material.PAPER, messages.get(viewer, "ranking.empty"), List.of()));
         }

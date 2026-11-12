@@ -226,6 +226,8 @@ ranking:
   line: "<accent>#<place> <player>"
   level: "<dark_gray>▸ <info><rank> <dark_gray>· niveau <accent><level></accent> <dark_gray>(<xp> XP)"
   empty: "<info>Personne pour l'instant."
+  mine: "<accent>Toi : #<place>"
+  mine-none: "<info>Pas encore classé dans ce métier"
 
 profile:
   title: "<info>Métier de <accent><player></accent> : <accent><job>"

@@ -224,6 +224,8 @@ ranking:
   line: "<accent>#<place> <player>"
   level: "<dark_gray>▸ <info><rank> <dark_gray>· level <accent><level></accent> <dark_gray>(<xp> XP)"
   empty: "<info>Nobody yet."
+  mine: "<accent>You: #<place>"
+  mine-none: "<info>Not ranked in this job yet"
 
 profile:
   title: "<info><accent><player></accent>'s job: <accent><job>"
