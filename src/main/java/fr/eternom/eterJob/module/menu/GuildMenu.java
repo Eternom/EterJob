@@ -140,6 +140,14 @@ class GuildMenu implements Menu {
                 lore.add(text("guild.job.new"));
             }
             lore.add(text("guild.job.members", "count", String.valueOf(JobGui.members(view.members(), job))));
+            if (!mine) {
+                // Pour donner envie : ce que ce métier propose chaque semaine (récompense de base, avant le bonus du rang)
+                var weekly = service.catalog().of(job).of(fr.eternom.eterJob.module.job.QuestCatalog.Kind.WEEKLY);
+                if (!weekly.isEmpty()) {
+                    double best = weekly.stream().mapToDouble(fr.eternom.eterJob.module.job.QuestCatalog.Template::reward).max().orElse(0);
+                    lore.add(text("guild.job.weekly", "count", String.valueOf(weekly.size()), "reward", Money.format(best)));
+                }
+            }
             if (job.equals(view.weakest())) {
                 lore.add(text("guild.job.weakest", "bonus", String.valueOf(Math.round(service.settings().weakestBonus() * 100))));
             }

@@ -83,6 +83,8 @@ public final class Main extends JavaPlugin {
         AdminCommand admin = new AdminCommand(service, bus, this::reloadLocal);
         bus.on("event-start", data -> admin.announceEvent(data.get("job").getAsString(), data.get("multiplier").getAsDouble(),
                 data.get("minutes").getAsLong()));
+        bus.on("event-soon", data -> admin.announceSoon(data.get("job").getAsString(), data.get("multiplier").getAsDouble(),
+                data.get("minutes").getAsLong(), data.get("in").getAsLong()));
         register("job", new JobCommand(service, gui));
         register("eterjob", admin);
 

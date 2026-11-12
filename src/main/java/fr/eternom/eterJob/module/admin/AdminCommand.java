@@ -190,6 +190,37 @@ public class AdminCommand implements TabExecutor {
             return;
         }
         double chosen = multiplier;
+        // Annoncé à l'avance (5e argument : dans combien de temps) : annonce maintenant sur tout le réseau, rappel 5 min
+        // avant, puis lancement. Gardé par ce serveur seulement : s'il redémarre avant, l'évènement ne part pas.
+        if (args.length > 4) {
+            Duration delay = duration(args[4]);
+            if (delay == null || delay.isZero()) {
+                messages.send(sender, "admin.event-usage");
+                return;
+            }
+            JsonObject soon = new JsonObject();
+            soon.addProperty("job", job);
+            soon.addProperty("multiplier", chosen);
+            soon.addProperty("minutes", duration.toMinutes());
+            soon.addProperty("in", delay.toMinutes());
+            bus.publish("event-soon", soon);
+            announceSoon(job, chosen, duration.toMinutes(), delay.toMinutes());
+            if (delay.toMinutes() > 10) {
+                Bukkit.getScheduler().runTaskLater(service.plugin(), () -> {
+                    soon.addProperty("in", 5);
+                    bus.publish("event-soon", soon);
+                    announceSoon(job, chosen, duration.toMinutes(), 5);
+                }, (delay.toMinutes() - 5) * 60 * 20);
+            }
+            Bukkit.getScheduler().runTaskLater(service.plugin(), () -> startEvent(sender, job, chosen, duration), delay.toSeconds() * 20);
+            messages.send(sender, "admin.event-scheduled", "time", EterLib.get().formatDuration(sender, delay.toSeconds()));
+            return;
+        }
+        startEvent(sender, job, chosen, duration);
+    }
+
+    /** Lance l'évènement maintenant (base, tout le réseau, annonce). */
+    private void startEvent(CommandSender sender, String job, double chosen, Duration duration) {
         Tasks.async(service.plugin(), () -> {
             service.repository().addEvent(new JobRepository.Event(job.equals("all") ? null : job, chosen,
                     System.currentTimeMillis() + duration.toMillis(), sender.getName()));
@@ -208,6 +239,15 @@ public class AdminCommand implements TabExecutor {
     }
 
     /** Annonce d'un évènement aux joueurs de ce serveur. */
+    /** Évènement à venir : « dans 30 min, les quêtes de mineur rapporteront ×2 pendant 2 h ». */
+    public void announceSoon(String job, double multiplier, long minutes, long in) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            messages.send(player, job.equals("all") ? "event.soon-all" : "event.soon",
+                    "job", job.equals("all") ? "" : service.jobName(player, job), "multiplier", String.valueOf(multiplier),
+                    "time", EterLib.get().formatDuration(player, minutes * 60), "in", EterLib.get().formatDuration(player, in * 60));
+        }
+    }
+
     public void announceEvent(String job, double multiplier, long minutes) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             messages.send(player, job.equals("all") ? "event.start-all" : "event.start",

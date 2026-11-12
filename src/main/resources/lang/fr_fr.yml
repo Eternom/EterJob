@@ -165,6 +165,7 @@ guild:
     level: "<dark_gray>▸ <info>Toi : <accent><rank></accent> <dark_gray>niveau <level>, <count> quêtes"
     new: "<dark_gray>▸ <info>Toi : jamais pratiqué"
     members: "<dark_gray>▸ <info>Membres : <accent><count>"
+    weekly: "<dark_gray>▸ <info>Quêtes de la semaine : <accent><count></accent>, jusqu'à <accent><reward></accent>"
     weakest: "<dark_gray>▸ <success>Cette semaine : +<bonus> % de récompense"
     mine: "<accent>Clic <dark_gray>· <info>tes quêtes"
     join: "<accent>Clic <dark_gray>· <info>devenir ce métier"
@@ -241,6 +242,8 @@ box:
   taken: "<info>Colis récupéré."
 
 event:
+  soon: "<accent>Bientôt :</accent> <info>dans <accent><in></accent>, les quêtes de <accent><job></accent> rapporteront ×<accent><multiplier></accent> pendant <accent><time></accent>."
+  soon-all: "<accent>Bientôt :</accent> <info>dans <accent><in></accent>, toutes les quêtes de métier rapporteront ×<accent><multiplier></accent> pendant <accent><time></accent>."
   start: "<success>Évènement : les quêtes de <accent><job></accent> rapportent ×<accent><multiplier></accent> pendant <accent><time></accent> !"
   start-all: "<success>Évènement : toutes les quêtes de métier rapportent ×<accent><multiplier></accent> pendant <accent><time></accent> !"
 
@@ -249,7 +252,8 @@ admin:
   done: "<info><accent><player></accent> : <what>."
   remove-confirm: "<error>Retirer le métier de <accent><player></accent> ? <accent>/eterjob remove <player> confirm"
   reloaded: "<info>Réglages et quêtes rechargés sur tout le réseau."
-  event-usage: '<error>Utilisation : <accent>/eterjob event \<métier|all> \<multiplicateur> \<durée></accent> (ex : mineur 2 2h) ou <accent>event stop'
+  event-usage: '<error>Utilisation : <accent>/eterjob event \<métier|all> \<multiplicateur> \<durée> [dans]</accent> (ex : mineur 2 2h, ou mineur 2 2h 30m pour l''annoncer 30 min avant) ou <accent>event stop'
+  event-scheduled: "<info>Évènement annoncé sur tout le réseau : il commence dans <accent><time></accent> (gardé par ce serveur)."
   event-started: "<info>Évènement lancé sur tout le réseau."
   event-stopped: "<info>Évènements arrêtés."
   rate-alert: "<error>[Métiers]</error> <accent><player></accent> <info>a cassé <accent><count></accent> blocs en une minute."

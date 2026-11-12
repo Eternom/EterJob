@@ -163,6 +163,7 @@ guild:
     level: "<dark_gray>▸ <info>You: <accent><rank></accent> <dark_gray>level <level>, <count> quests"
     new: "<dark_gray>▸ <info>You: never practised"
     members: "<dark_gray>▸ <info>Members: <accent><count>"
+    weekly: "<dark_gray>▸ <info>Weekly quests: <accent><count></accent>, up to <accent><reward></accent>"
     weakest: "<dark_gray>▸ <success>This week: +<bonus> % rewards"
     mine: "<accent>Click <dark_gray>· <info>your quests"
     join: "<accent>Click <dark_gray>· <info>take this job"
@@ -239,6 +240,8 @@ box:
   taken: "<info>Parcel taken."
 
 event:
+  soon: "<accent>Coming up:</accent> <info>in <accent><in></accent>, <accent><job></accent> quests will pay ×<accent><multiplier></accent> for <accent><time></accent>."
+  soon-all: "<accent>Coming up:</accent> <info>in <accent><in></accent>, all job quests will pay ×<accent><multiplier></accent> for <accent><time></accent>."
   start: "<success>Event: <accent><job></accent> quests pay ×<accent><multiplier></accent> for <accent><time></accent>!"
   start-all: "<success>Event: every job quest pays ×<accent><multiplier></accent> for <accent><time></accent>!"
 
@@ -247,7 +250,8 @@ admin:
   done: "<info><accent><player></accent>: <what>."
   remove-confirm: "<error>Remove <accent><player></accent>'s job? <accent>/eterjob remove <player> confirm"
   reloaded: "<info>Settings and quests reloaded on the whole network."
-  event-usage: '<error>Usage: <accent>/eterjob event \<job|all> \<multiplier> \<duration></accent> (e.g. mineur 2 2h) or <accent>event stop'
+  event-usage: '<error>Usage: <accent>/eterjob event \<job|all> \<multiplier> \<duration> [in]</accent> (e.g. mineur 2 2h, or mineur 2 2h 30m to announce it 30 min ahead) or <accent>event stop'
+  event-scheduled: "<info>Event announced network-wide: it starts in <accent><time></accent> (kept by this server)."
   event-started: "<info>Event started on the whole network."
   event-stopped: "<info>Events stopped."
   rate-alert: "<error>[Jobs]</error> <accent><player></accent> <info>broke <accent><count></accent> blocks in one minute."
